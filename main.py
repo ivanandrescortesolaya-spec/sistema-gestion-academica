@@ -4,6 +4,10 @@ from personas.profesores import Profesor
 from gestion_academica import GestionAcademica
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
+from gestion_academica import GestionAcademica
+from personas.profesores import Profesor
+from personas.aprendices import Aprendiz
+from cursos.curso import Curso
 
 
 def mostrar_menu():
@@ -165,6 +169,81 @@ def menu_aprendices(sistema: GestionAcademica):
             print(f"\nError: {error}")
 
 
+def menu_cursos(sistema: GestionAcademica):
+    while True:
+        print("\n====================================")
+        print("         GESTIÓN DE CURSOS")
+        print("====================================")
+        print("1. Registrar curso")
+        print("2. Buscar curso")
+        print("3. Listar cursos")
+        print("4. Asignar profesor")
+        print("0. Volver al menú principal")
+
+        opcion = input("\nSeleccione una opción: ").strip()
+
+        try:
+            match opcion:
+                case "1":
+                    codigo = input("Código: ")
+                    nombre = input("Nombre: ")
+                    descripcion = input("Descripción: ")
+                    duracion = int(input("Duración en horas: "))
+                    modalidad = input(
+                        "Modalidad (titulada/complementaria): "
+                    )
+
+                    curso = Curso(
+                        codigo,
+                        nombre,
+                        descripcion,
+                        duracion,
+                        modalidad
+                    )
+
+                    sistema.registrar_curso(curso)
+
+                    print("\nCurso registrado correctamente.")
+
+                case "2":
+                    codigo = input("Código del curso: ").strip()
+                    curso = sistema.buscar_curso(codigo)
+
+                    if curso is None:
+                        print("\nCurso no encontrado.")
+                    else:
+                        print(curso.mostrar_informacion())
+
+                case "3":
+                    cursos = sistema.listar_cursos()
+
+                    if not cursos:
+                        print("\nNo hay cursos registrados.")
+                    else:
+                        for curso in cursos:
+                            print("\n------------------------")
+                            print(curso.mostrar_informacion())
+
+                case "4":
+                    codigo = input("Código del curso: ").strip()
+                    documento = int(
+                        input("Documento del profesor: ")
+                    )
+
+                    sistema.asignar_profesor(codigo, documento)
+
+                    print("\nProfesor asignado correctamente.")
+
+                case "0":
+                    break
+
+                case _:
+                    print("\nOpción inválida.")
+
+        except ValueError as error:
+            print(f"\nError: {error}")
+
+
 def main():
     sistema = GestionAcademica()
 
@@ -181,7 +260,7 @@ def main():
                 menu_aprendices(sistema)
 
             case "3":
-                print("\nGestión de cursos")
+                menu_cursos(sistema)
 
             case "4":
                 print("\nMódulo de inscripciones pendiente")
