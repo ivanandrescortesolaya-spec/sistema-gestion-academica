@@ -13,21 +13,19 @@ class Gestion_profesores:
         return None
 
     def registrar(self, profesor: Profesor):
-        if self.buscar_por_documento(profesor.documento):
-            print("Ya existe un profesor con ese documento")
-            return
+        if not isinstance(profesor, Profesor):
+            raise ValueError("Debes registrar un profesor válido")
+
+        if self.buscar_por_documento(profesor.documento) is not None:
+            raise ValueError("Ya existe un profesor con ese documento")
 
         self.__profesores.append(profesor)
-        print("Profesor registrado correctamente")
+        return True
 
     def mostrar(self, profesor: Profesor):
         print("Información del profesor:")
         print(profesor.mostrar_informacion())
 
     def listar(self):
-        if not self.__profesores:
-            print("No hay profesores registrados")
-            return
+        return self.__profesores.copy()
 
-        for profesor in self.__profesores:
-            self.mostrar(profesor)
