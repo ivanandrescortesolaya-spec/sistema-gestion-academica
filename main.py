@@ -1,6 +1,9 @@
 
 from gestion_academica import GestionAcademica
 from personas.profesores import Profesor
+from gestion_academica import GestionAcademica
+from personas.profesores import Profesor
+from personas.aprendices import Aprendiz
 
 
 def mostrar_menu():
@@ -98,6 +101,70 @@ def menu_profesores(sistema: GestionAcademica):
             print(f"\nError: {error}")
 
 
+def menu_aprendices(sistema: GestionAcademica):
+    while True:
+        print("\n====================================")
+        print("       GESTIÓN DE APRENDICES")
+        print("====================================")
+        print("1. Registrar aprendiz")
+        print("2. Buscar aprendiz")
+        print("3. Listar aprendices")
+        print("0. Volver al menú principal")
+
+        opcion = input("\nSeleccione una opción: ").strip()
+
+        try:
+            match opcion:
+                case "1":
+                    nombre = input("Nombre: ")
+                    documento = int(input("Documento: "))
+                    edad = int(input("Edad: "))
+                    telefono = input("Teléfono: ")
+                    correo = input("Correo electrónico: ")
+                    direccion = input("Dirección: ")
+
+                    aprendiz = Aprendiz(
+                        nombre,
+                        documento,
+                        edad,
+                        telefono,
+                        correo,
+                        direccion
+                    )
+
+                    sistema.registrar_aprendiz(aprendiz)
+
+                    print("\nAprendiz registrado correctamente.")
+
+                case "2":
+                    documento = int(input("Documento: "))
+                    aprendiz = sistema.buscar_aprendiz(documento)
+
+                    if aprendiz is None:
+                        print("\nAprendiz no encontrado.")
+                    else:
+                        print(aprendiz.mostrar_informacion())
+
+                case "3":
+                    aprendices = sistema.listar_aprendices()
+
+                    if not aprendices:
+                        print("\nNo hay aprendices registrados.")
+                    else:
+                        for aprendiz in aprendices:
+                            print("\n------------------------")
+                            print(aprendiz.mostrar_informacion())
+
+                case "0":
+                    break
+
+                case _:
+                    print("\nOpción inválida.")
+
+        except ValueError as error:
+            print(f"\nError: {error}")
+
+
 def main():
     sistema = GestionAcademica()
 
@@ -111,7 +178,7 @@ def main():
                 menu_profesores(sistema)
 
             case "2":
-                print("\nGestión de aprendices")
+                menu_aprendices(sistema)
 
             case "3":
                 print("\nGestión de cursos")
