@@ -94,14 +94,3 @@ class Curso:
             f"Profesor: {profesor_nombre}"
         )
 
-
-
-
-
-    
-
-# Registrar cursos.
-# Almacenar código, nombre, descripción y duración en horas.
-# Definir modalidad: formación titulada o complementaria.
-# Asignar un profesor responsable.
-# Consultar y listar cursos.

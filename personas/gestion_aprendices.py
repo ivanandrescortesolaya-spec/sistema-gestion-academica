@@ -1,4 +1,6 @@
+
 from personas.aprendices import Aprendiz
+
 
 class Gestion_aprendices:
 
@@ -13,21 +15,18 @@ class Gestion_aprendices:
         return None
 
     def registrar(self, aprendiz: Aprendiz):
-        if self.buscar_documento(aprendiz.documento):
-            print("Ya existe un aprendiz con ese documento")
-            return
+        if not isinstance(aprendiz, Aprendiz):
+            raise ValueError("Debes registrar un aprendiz válido")
+
+        if self.buscar_documento(aprendiz.documento) is not None:
+            raise ValueError("Ya existe un aprendiz con ese documento")
 
         self.__aprendices.append(aprendiz)
-        print("Aprendiz registrado correctamente")
+        return True
 
     def mostrar(self, aprendiz: Aprendiz):
         print("Información del aprendiz:")
         print(aprendiz.mostrar_informacion())
 
     def listar(self):
-        if not self.__aprendices:
-            print("No hay aprendices registrados")
-            return
-
-        for aprendiz in self.__aprendices:
-            self.mostrar(aprendiz)
+        return self.__aprendices.copy()
