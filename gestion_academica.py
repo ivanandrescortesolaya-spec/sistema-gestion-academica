@@ -1,73 +1,36 @@
 
-from typing import Optional
-
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
 
-from personas.gestion_profesores import (
-    IGestionProfesores,
-    Gestion_profesores
-)
-
-from personas.gestion_aprendices import (
-    IGestionAprendices,
-    Gestion_aprendices
-)
+from personas.gestion_profesores import IGestionProfesores
+from personas.gestion_aprendices import IGestionAprendices
 
 from cursos.curso import Curso
-from cursos.gestion_cursos import (
-    IGestionCursos,
-    GestionCursos
-)
+from cursos.gestion_cursos import IGestionCursos
 
 from inscripciones.inscripcion import Inscripcion
-from inscripciones.gestion_inscripciones import (
-    IGestionInscripciones,
-    GestionInscripciones
-)
+from inscripciones.gestion_inscripciones import IGestionInscripciones
 
 from calificaciones.calificacion import Calificacion
-from calificaciones.gestion_calificaciones import (
-    IGestionCalificaciones,
-    GestionCalificaciones
-)
+from calificaciones.gestion_calificaciones import IGestionCalificaciones
 
 
 class GestionAcademica:
 
     def __init__(
         self,
-        profesores: Optional[IGestionProfesores] = None,
-        aprendices: Optional[IGestionAprendices] = None,
-        cursos: Optional[IGestionCursos] = None,
-        inscripciones: Optional[IGestionInscripciones] = None,
-        calificaciones: Optional[IGestionCalificaciones] = None
+        profesores: IGestionProfesores,
+        aprendices: IGestionAprendices,
+        cursos: IGestionCursos,
+        inscripciones: IGestionInscripciones,
+        calificaciones: IGestionCalificaciones
     ):
 
-        self.__profesores: IGestionProfesores = (
-            profesores if profesores is not None
-            else Gestion_profesores()
-        )
-
-        self.__aprendices: IGestionAprendices = (
-            aprendices if aprendices is not None
-            else Gestion_aprendices()
-        )
-
-        self.__cursos: IGestionCursos = (
-            cursos if cursos is not None
-            else GestionCursos()
-        )
-
-        self.__inscripciones: IGestionInscripciones = (
-            inscripciones if inscripciones is not None
-            else GestionInscripciones()
-        )
-
-        self.__calificaciones: IGestionCalificaciones = (
-            calificaciones if calificaciones is not None
-            else GestionCalificaciones()
-        )
+        self.__profesores: IGestionProfesores = profesores
+        self.__aprendices: IGestionAprendices = aprendices
+        self.__cursos: IGestionCursos = cursos
+        self.__inscripciones: IGestionInscripciones = inscripciones
+        self.__calificaciones: IGestionCalificaciones = calificaciones
 
     # Gestion de profesores
 
