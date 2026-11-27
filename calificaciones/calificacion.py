@@ -1,14 +1,20 @@
+
 from datetime import date
 from inscripciones.inscripcion import Inscripcion
 
 
 class Calificacion:
 
-    def __init__(self, codigo, inscripcion, nota):
+    def __init__(
+        self,
+        codigo: str,
+        inscripcion: Inscripcion,
+        nota: float
+    ):
         self.codigo = codigo
         self.inscripcion = inscripcion
         self.nota = nota
-        self.fecha = date.today()
+        self.__fecha = date.today()
 
     @property
     def codigo(self):
@@ -17,7 +23,8 @@ class Calificacion:
     @codigo.setter
     def codigo(self, codigo):
         if not isinstance(codigo, str) or not codigo.strip():
-            raise ValueError("El codigo es obligatorio")
+            raise ValueError("El código es obligatorio")
+
         self.__codigo = codigo.strip()
 
     @property
@@ -27,7 +34,8 @@ class Calificacion:
     @inscripcion.setter
     def inscripcion(self, inscripcion):
         if not isinstance(inscripcion, Inscripcion):
-            raise ValueError("Debe ingresar una inscripcion valida")
+            raise ValueError("Debe ingresar una inscripción válida")
+
         self.__inscripcion = inscripcion
 
     @property
@@ -36,15 +44,20 @@ class Calificacion:
 
     @nota.setter
     def nota(self, nota):
-        if type(nota) not in (int, float) or not 0 <= nota <= 100:
-            raise ValueError("La nota debe estar entre 0 y 100")
-        self.__nota = nota
+        if type(nota) not in (int, float) or not 0.0 <= nota <= 5.0:
+            raise ValueError("La nota debe estar entre 0.0 y 5.0")
 
-    def mostrar_informacion(self):
+        self.__nota = float(nota)
+
+    @property
+    def fecha(self):
+        return self.__fecha
+
+    def mostrar_informacion(self) -> str:
         return (
-            f"Codigo: {self.codigo}\n"
+            f"Código: {self.codigo}\n"
             f"Aprendiz: {self.inscripcion.aprendiz.nombre}\n"
             f"Curso: {self.inscripcion.curso.nombre}\n"
-            f"Nota: {self.nota}\n"
+            f"Nota: {self.nota:.2f}\n"
             f"Fecha: {self.fecha}"
         )
