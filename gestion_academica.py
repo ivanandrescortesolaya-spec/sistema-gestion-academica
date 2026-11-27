@@ -1,27 +1,36 @@
 
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
-from personas.gestion_profesores import Gestion_profesores
-from personas.gestion_aprendices import Gestion_aprendices
+
+from personas.gestion_profesores import IGestionProfesores
+from personas.gestion_aprendices import IGestionAprendices
 
 from cursos.curso import Curso
-from cursos.gestion_cursos import GestionCursos
+from cursos.gestion_cursos import IGestionCursos
 
 from inscripciones.inscripcion import Inscripcion
-from inscripciones.gestion_inscripciones import GestionInscripciones
+from inscripciones.gestion_inscripciones import IGestionInscripciones
 
 from calificaciones.calificacion import Calificacion
-from calificaciones.gestion_calificaciones import GestionCalificaciones
+from calificaciones.gestion_calificaciones import IGestionCalificaciones
 
 
 class GestionAcademica:
 
-    def __init__(self):
-        self.__profesores = Gestion_profesores()
-        self.__aprendices = Gestion_aprendices()
-        self.__cursos = GestionCursos()
-        self.__inscripciones = GestionInscripciones()
-        self.__calificaciones = GestionCalificaciones()
+    def __init__(
+        self,
+        profesores: IGestionProfesores,
+        aprendices: IGestionAprendices,
+        cursos: IGestionCursos,
+        inscripciones: IGestionInscripciones,
+        calificaciones: IGestionCalificaciones
+    ):
+
+        self.__profesores: IGestionProfesores = profesores
+        self.__aprendices: IGestionAprendices = aprendices
+        self.__cursos: IGestionCursos = cursos
+        self.__inscripciones: IGestionInscripciones = inscripciones
+        self.__calificaciones: IGestionCalificaciones = calificaciones
 
     # Gestion de profesores
 

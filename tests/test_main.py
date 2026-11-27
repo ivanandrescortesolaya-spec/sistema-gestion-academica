@@ -1,9 +1,13 @@
-
 import unittest
 from unittest.mock import patch
 from io import StringIO
 
 from gestion_academica import GestionAcademica
+from personas.gestion_profesores import Gestion_profesores
+from personas.gestion_aprendices import Gestion_aprendices
+from cursos.gestion_cursos import GestionCursos
+from inscripciones.gestion_inscripciones import GestionInscripciones
+from calificaciones.gestion_calificaciones import GestionCalificaciones
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
 from cursos.curso import Curso
@@ -25,7 +29,13 @@ from main import (
 class TestMain(unittest.TestCase):
 
     def setUp(self):
-        self.sistema = GestionAcademica()
+        self.sistema = GestionAcademica(
+            profesores=Gestion_profesores(),
+            aprendices=Gestion_aprendices(),
+            cursos=GestionCursos(),
+            inscripciones=GestionInscripciones(),
+            calificaciones=GestionCalificaciones()
+        )
 
         self.profesor = Profesor(
             "Carlos Pérez",

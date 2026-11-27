@@ -5,6 +5,12 @@ from cursos.curso import Curso
 from cursos.gestion_cursos import GestionCursos
 from personas.profesores import Profesor
 
+class CursoExtendido(Curso):
+
+    MODALIDADES_VALIDAS = (
+        Curso.MODALIDADES_VALIDAS
+        | {"especializacion"}
+    )
 
 class TestCursos(unittest.TestCase):
 
@@ -163,6 +169,82 @@ class TestCursos(unittest.TestCase):
         self.assertIn("Programación Python", informacion)
         self.assertIn("120 horas", informacion)
         self.assertIn("Carlos Pérez", informacion)
+
+    
+    def test_modalidades_originales_conservadas(self):
+        self.assertEqual(
+            Curso.MODALIDADES_VALIDAS,
+            frozenset({"titulada", "complementaria"})
+        )
+
+    def test_extender_modalidades_ocp(self):
+        curso = CursoExtendido(
+            "CUR003",
+            "Python avanzado",
+            "Especialización en Python",
+            160,
+            "especializacion"
+        )
+
+        self.assertEqual(
+            curso.modalidad,
+            "especializacion"
+        )
+
+    def test_modalidad_extendida_no_modifica_clase_base(self):
+        with self.assertRaises(ValueError):
+            Curso(
+                "CUR003",
+                "Python avanzado",
+                "Especialización en Python",
+                160,
+                "especializacion"
+            )
+
+        self.assertNotIn(
+            "especializacion",
+            Curso.MODALIDADES_VALIDAS
+        )
+
+    def test_sustitucion_curso_extendido_lsp(self):
+        curso = CursoExtendido(
+            "CUR003",
+            "Python avanzado",
+            "Especialización en Python",
+            160,
+            "especializacion"
+        )
+
+        self.assertIsInstance(curso, Curso)
+
+        self.assertTrue(
+            self.gestion.registrar(curso)
+        )
+
+        self.assertIs(
+            self.gestion.buscar_por_codigo("CUR003"),
+            curso
+        )
+
+        self.assertTrue(
+            self.gestion.asignar_profesor(
+                "CUR003",
+                self.profesor
+            )
+        )
+
+        self.assertIs(
+            curso.profesor,
+            self.profesor
+        )
+
+        self.assertIn(curso, self.gestion.listar())
+
+        self.assertIn(
+            "especializacion",
+            curso.mostrar_informacion()
+        )
+
 
 
 if __name__ == "__main__":

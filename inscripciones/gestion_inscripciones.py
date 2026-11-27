@@ -1,17 +1,54 @@
 
+from collections.abc import MutableSequence
+from typing import Protocol, Optional
+
 from inscripciones.inscripcion import Inscripcion
+
+
+class IGestionInscripciones(Protocol):
+
+    def registrar(self, inscripcion: Inscripcion) -> bool:
+        ...
+
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Inscripcion]:
+        ...
+
+    def listar(self) -> list[Inscripcion]:
+        ...
+
+    def buscar_por_aprendiz(
+        self, documento: int
+    ) -> list[Inscripcion]:
+        ...
+
+    def buscar_por_curso(
+        self, codigo_curso: str
+    ) -> list[Inscripcion]:
+        ...
 
 
 class GestionInscripciones:
 
-    def __init__(self):
-        self.__inscripciones = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Inscripcion]] = None
+    ):
+        self.__inscripciones: MutableSequence[Inscripcion] = (
+        almacenamiento if almacenamiento is not None else []
+    )
 
-    def registrar(self, inscripcion: Inscripcion):
+    def registrar(self, inscripcion: Inscripcion) -> bool:
+
         if not isinstance(inscripcion, Inscripcion):
-            raise ValueError("Debe ingresar una inscripción válida")
+            raise ValueError(
+                "Debe ingresar una inscripción válida"
+            )
 
-        if self.buscar_por_codigo(inscripcion.codigo) is not None:
+        if self.buscar_por_codigo(
+            inscripcion.codigo
+        ) is not None:
             raise ValueError("La inscripción ya existe")
 
         if self.buscar_por_aprendiz_y_curso(
@@ -25,17 +62,23 @@ class GestionInscripciones:
         self.__inscripciones.append(inscripcion)
         return True
 
-    def buscar_por_codigo(self, codigo: str):
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Inscripcion]:
+
         for inscripcion in self.__inscripciones:
             if inscripcion.codigo == codigo:
                 return inscripcion
 
         return None
 
-    def listar(self):
-        return self.__inscripciones.copy()
+    def listar(self) -> list[Inscripcion]:
+        return list(self.__inscripciones)
 
-    def buscar_por_aprendiz(self, documento: int):
+    def buscar_por_aprendiz(
+        self, documento: int
+    ) -> list[Inscripcion]:
+
         resultado = []
 
         for inscripcion in self.__inscripciones:
@@ -44,7 +87,10 @@ class GestionInscripciones:
 
         return resultado
 
-    def buscar_por_curso(self, codigo_curso: str):
+    def buscar_por_curso(
+        self, codigo_curso: str
+    ) -> list[Inscripcion]:
+
         resultado = []
 
         for inscripcion in self.__inscripciones:
@@ -55,7 +101,8 @@ class GestionInscripciones:
 
     def buscar_por_aprendiz_y_curso(
         self, documento: int, codigo_curso: str
-    ):
+    ) -> Optional[Inscripcion]:
+
         for inscripcion in self.__inscripciones:
             if (
                 inscripcion.aprendiz.documento == documento
@@ -66,6 +113,7 @@ class GestionInscripciones:
         return None
 
     def mostrar(self) -> str:
+
         if not self.__inscripciones:
             return "No hay inscripciones registradas"
 

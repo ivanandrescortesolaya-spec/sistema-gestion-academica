@@ -1,18 +1,92 @@
-
 import unittest
+from collections import UserList
+from typing import Optional
 
 from gestion_academica import GestionAcademica
+
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
 from cursos.curso import Curso
 from inscripciones.inscripcion import Inscripcion
 from calificaciones.calificacion import Calificacion
 
+from personas.gestion_profesores import (
+    IGestionProfesores,
+    Gestion_profesores
+)
+
+from personas.gestion_aprendices import Gestion_aprendices
+from cursos.gestion_cursos import GestionCursos
+from inscripciones.gestion_inscripciones import GestionInscripciones
+from calificaciones.gestion_calificaciones import GestionCalificaciones
+
+class GestionProfesoresAlternativa:
+
+    def __init__(self):
+        self.__profesores: dict[int, Profesor] = {}
+
+    def registrar(self, profesor: Profesor) -> bool:
+
+        if not isinstance(profesor, Profesor):
+            raise ValueError(
+                "Debes registrar un profesor válido"
+            )
+
+        if profesor.documento in self.__profesores:
+            raise ValueError(
+                "Ya existe un profesor con ese documento"
+            )
+
+        self.__profesores[profesor.documento] = profesor
+        return True
+
+    def buscar_por_documento(
+        self, documento: int
+    ) -> Optional[Profesor]:
+
+        return self.__profesores.get(documento)
+
+    def listar(self) -> list[Profesor]:
+        return list(self.__profesores.values())
+
+
 
 class TestGestionAcademica(unittest.TestCase):
 
+    def crear_sistema(
+        self,
+        profesores=None,
+        aprendices=None,
+        cursos=None,
+        inscripciones=None,
+        calificaciones=None
+    ) -> GestionAcademica:
+
+        return GestionAcademica(
+            profesores=(
+                profesores if profesores is not None
+                else Gestion_profesores()
+            ),
+            aprendices=(
+                aprendices if aprendices is not None
+                else Gestion_aprendices()
+            ),
+            cursos=(
+                cursos if cursos is not None
+                else GestionCursos()
+            ),
+            inscripciones=(
+                inscripciones if inscripciones is not None
+                else GestionInscripciones()
+            ),
+            calificaciones=(
+                calificaciones if calificaciones is not None
+                else GestionCalificaciones()
+            )
+        )
+
     def setUp(self):
-        self.sistema = GestionAcademica()
+        self.sistema = self.crear_sistema()
 
         self.profesor = Profesor(
             "Carlos Pérez", 123456, 35,
@@ -448,6 +522,398 @@ class TestGestionAcademica(unittest.TestCase):
             }
         )
 
+    # Pruebas de ISP y DIP
 
+    def test_inyeccion_gestion_profesores(self):
+        gestor = Gestion_profesores()
+
+        sistema = self.crear_sistema(
+            profesores=gestor
+        )
+
+        sistema.registrar_profesor(self.profesor)
+
+        self.assertIs(
+            gestor.buscar_por_documento(123456),
+            self.profesor
+        )
+
+        self.assertEqual(
+            sistema.listar_profesores(),
+            gestor.listar()
+        )
+
+    def test_inyeccion_gestion_aprendices(self):
+        gestor = Gestion_aprendices()
+
+        sistema = self.crear_sistema(
+            aprendices=gestor
+        )
+
+        sistema.registrar_aprendiz(self.aprendiz)
+
+        self.assertIs(
+            gestor.buscar_documento(654321),
+            self.aprendiz
+        )
+
+        self.assertEqual(
+            sistema.listar_aprendices(),
+            gestor.listar()
+        )
+
+    def test_inyeccion_gestion_cursos(self):
+        gestor = GestionCursos()
+
+        sistema = self.crear_sistema(
+            cursos=gestor
+        )
+
+        sistema.registrar_curso(self.curso)
+
+        self.assertIs(
+            gestor.buscar_por_codigo("CUR001"),
+            self.curso
+        )
+
+        self.assertEqual(
+            sistema.listar_cursos(),
+            gestor.listar()
+        )
+
+    def test_inyeccion_gestion_inscripciones(self):
+        gestor = GestionInscripciones()
+
+        sistema = self.crear_sistema(
+            inscripciones=gestor
+        )
+
+        sistema.registrar_aprendiz(self.aprendiz)
+        sistema.registrar_curso(self.curso)
+        sistema.registrar_inscripcion(self.inscripcion)
+
+        self.assertIs(
+            gestor.buscar_por_codigo("I001"),
+            self.inscripcion
+        )
+
+        self.assertEqual(
+            sistema.listar_inscripciones(),
+            gestor.listar()
+        )
+
+    def test_inyeccion_gestion_calificaciones(self):
+        gestor = GestionCalificaciones()
+
+        sistema = self.crear_sistema(
+            calificaciones=gestor
+        )
+
+        sistema.registrar_aprendiz(self.aprendiz)
+        sistema.registrar_curso(self.curso)
+        sistema.registrar_inscripcion(self.inscripcion)
+        sistema.registrar_calificacion(self.calificacion)
+
+        self.assertIs(
+            gestor.buscar_por_codigo("N001"),
+            self.calificacion
+        )
+
+        self.assertEqual(
+            sistema.listar_calificaciones(),
+            gestor.listar()
+        )
+
+    def test_implementacion_alternativa_dip(self):
+        gestor: IGestionProfesores = (
+            GestionProfesoresAlternativa()
+        )
+
+        sistema = self.crear_sistema(
+            profesores=gestor
+        )
+
+        self.assertTrue(
+            sistema.registrar_profesor(self.profesor)
+        )
+
+        self.assertIs(
+            sistema.buscar_profesor(123456),
+            self.profesor
+        )
+
+        self.assertEqual(
+            sistema.listar_profesores(),
+            [self.profesor]
+        )
+
+        with self.assertRaises(ValueError):
+            sistema.registrar_profesor(self.profesor)
+
+    def test_interfaz_segregada_isp(self):
+        gestor = GestionProfesoresAlternativa()
+
+        self.assertFalse(
+            hasattr(gestor, "mostrar")
+        )
+
+        sistema = self.crear_sistema(
+            profesores=gestor
+        )
+
+        sistema.registrar_profesor(self.profesor)
+        sistema.registrar_curso(self.curso)
+
+        sistema.asignar_profesor(
+            "CUR001", 123456
+        )
+
+        self.assertIs(
+            self.curso.profesor,
+            self.profesor
+        )
+
+        self.assertEqual(
+            sistema.consultar_cursos_profesor(123456),
+            [self.curso]
+        )
+
+    def test_independencia_de_instancias(self):
+        sistema1 = self.crear_sistema()
+        sistema2 = self.crear_sistema()
+
+        sistema1.registrar_profesor(self.profesor)
+        sistema1.registrar_aprendiz(self.aprendiz)
+        sistema1.registrar_curso(self.curso)
+        sistema1.registrar_inscripcion(self.inscripcion)
+        sistema1.registrar_calificacion(self.calificacion)
+
+        self.assertEqual(
+            sistema1.obtener_resumen(),
+            {
+                "profesores": 1,
+                "aprendices": 1,
+                "cursos": 1,
+                "inscripciones": 1,
+                "calificaciones": 1
+            }
+        )
+
+        self.assertEqual(
+            sistema2.obtener_resumen(),
+            {
+                "profesores": 0,
+                "aprendices": 0,
+                "cursos": 0,
+                "inscripciones": 0,
+                "calificaciones": 0
+            }
+        )
+
+    # Pruebas de abstraccion del almacenamiento
+
+    def test_almacenamiento_alternativo_profesores(self):
+
+        almacenamiento = UserList[Profesor]()
+        gestor = Gestion_profesores(almacenamiento)
+
+        self.assertTrue(gestor.registrar(self.profesor))
+
+        self.assertEqual(
+            list(almacenamiento),
+            [self.profesor]
+        )
+
+        self.assertIs(
+            gestor.buscar_por_documento(123456),
+            self.profesor
+        )
+
+        self.assertEqual(
+            gestor.listar(),
+            [self.profesor]
+        )
+
+    def test_almacenamiento_alternativo_aprendices(self):
+
+        almacenamiento = UserList[Aprendiz]()
+        gestor = Gestion_aprendices(almacenamiento)
+
+        self.assertTrue(gestor.registrar(self.aprendiz))
+
+        self.assertEqual(
+            list(almacenamiento),
+            [self.aprendiz]
+        )
+
+        self.assertIs(
+            gestor.buscar_documento(654321),
+            self.aprendiz
+        )
+
+        self.assertEqual(
+            gestor.listar(),
+            [self.aprendiz]
+        )
+
+    def test_almacenamiento_alternativo_cursos(self):
+
+        almacenamiento = UserList[Curso]()
+        gestor = GestionCursos(almacenamiento)
+
+        self.assertTrue(gestor.registrar(self.curso))
+
+        self.assertEqual(
+            list(almacenamiento),
+            [self.curso]
+        )
+
+        self.assertIs(
+            gestor.buscar_por_codigo("CUR001"),
+            self.curso
+        )
+
+        self.assertEqual(
+            gestor.listar(),
+            [self.curso]
+        )
+
+    def test_almacenamiento_alternativo_inscripciones(self):
+
+        almacenamiento = UserList[Inscripcion]()
+        gestor = GestionInscripciones(almacenamiento)
+
+        self.assertTrue(
+            gestor.registrar(self.inscripcion)
+        )
+
+        self.assertEqual(
+            list(almacenamiento),
+            [self.inscripcion]
+        )
+
+        self.assertIs(
+            gestor.buscar_por_codigo("I001"),
+            self.inscripcion
+        )
+
+        self.assertEqual(
+            gestor.listar(),
+            [self.inscripcion]
+        )
+
+    def test_almacenamiento_alternativo_calificaciones(self):
+
+        almacenamiento = UserList[Calificacion]()
+        gestor = GestionCalificaciones(almacenamiento)
+
+        self.assertTrue(
+            gestor.registrar(self.calificacion)
+        )
+
+        self.assertEqual(
+            list(almacenamiento),
+            [self.calificacion]
+        )
+
+        self.assertIs(
+            gestor.buscar_por_codigo("N001"),
+            self.calificacion
+        )
+
+        self.assertEqual(
+            gestor.listar(),
+            [self.calificacion]
+        )
+
+    def test_independencia_listado_almacenamiento(self):
+
+        gestores = [
+            Gestion_profesores(
+                UserList[Profesor]([self.profesor])
+            ),
+            Gestion_aprendices(
+                UserList[Aprendiz]([self.aprendiz])
+            ),
+            GestionCursos(
+                UserList[Curso]([self.curso])
+            ),
+            GestionInscripciones(
+                UserList[Inscripcion]([self.inscripcion])
+            ),
+            GestionCalificaciones(
+                UserList[Calificacion]([self.calificacion])
+            )
+        ]
+
+        for gestor in gestores:
+            with self.subTest(gestor=type(gestor).__name__):
+
+                listado = gestor.listar()
+
+                self.assertIsInstance(listado, list)
+
+                listado.clear()
+
+                self.assertEqual(
+                    len(gestor.listar()),
+                    1
+                )
+
+    def test_almacenamiento_precargado(self):
+
+        sistema = GestionAcademica(
+            profesores=Gestion_profesores(
+                UserList[Profesor]([self.profesor])
+            ),
+            aprendices=Gestion_aprendices(
+                UserList[Aprendiz]([self.aprendiz])
+            ),
+            cursos=GestionCursos(
+                UserList[Curso]([self.curso])
+            ),
+            inscripciones=GestionInscripciones(
+                UserList[Inscripcion]([self.inscripcion])
+            ),
+            calificaciones=GestionCalificaciones(
+                UserList[Calificacion]([self.calificacion])
+            )
+        )
+
+        self.assertEqual(
+            sistema.obtener_resumen(),
+            {
+                "profesores": 1,
+                "aprendices": 1,
+                "cursos": 1,
+                "inscripciones": 1,
+                "calificaciones": 1
+            }
+        )
+
+        self.assertIs(
+            sistema.buscar_profesor(123456),
+            self.profesor
+        )
+
+        self.assertIs(
+            sistema.buscar_aprendiz(654321),
+            self.aprendiz
+        )
+
+        self.assertIs(
+            sistema.buscar_curso("CUR001"),
+            self.curso
+        )
+
+        self.assertIs(
+            sistema.buscar_inscripcion("I001"),
+            self.inscripcion
+        )
+
+        self.assertIs(
+            sistema.buscar_calificacion("N001"),
+            self.calificacion
+        )
 if __name__ == "__main__":
     unittest.main()

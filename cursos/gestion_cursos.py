@@ -1,33 +1,74 @@
 
+from collections.abc import MutableSequence
+from typing import Protocol, Optional
+
 from cursos.curso import Curso
 from personas.profesores import Profesor
 
 
+class IGestionCursos(Protocol):
+
+    def registrar(self, curso: Curso) -> bool:
+        ...
+
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Curso]:
+        ...
+
+    def listar(self) -> list[Curso]:
+        ...
+
+    def asignar_profesor(
+        self, codigo: str, profesor: Profesor
+    ) -> bool:
+        ...
+
+    def buscar_por_profesor(
+        self, documento: int
+    ) -> list[Curso]:
+        ...
+
+
 class GestionCursos:
 
-    def __init__(self):
-        self.__cursos = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Curso]] = None
+    ):
+            self.__cursos: MutableSequence[Curso] = (
+            almacenamiento if almacenamiento is not None else []
+        )
 
-    def buscar_por_codigo(self, codigo: str):
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Curso]:
+
         for curso in self.__cursos:
             if curso.codigo == codigo:
                 return curso
+
         return None
 
-    def registrar(self, curso: Curso):
+    def registrar(self, curso: Curso) -> bool:
+
         if not isinstance(curso, Curso):
-            raise ValueError("Debes registrar un curso válido")
+            raise ValueError(
+                "Debes registrar un curso válido"
+            )
 
         if self.buscar_por_codigo(curso.codigo) is not None:
-            raise ValueError("Ya existe un curso con ese código")
+            raise ValueError(
+                "Ya existe un curso con ese código"
+            )
 
         self.__cursos.append(curso)
         return True
 
-    def listar(self):
-        return self.__cursos.copy()
+    def listar(self) -> list[Curso]:
+        return list(self.__cursos)
 
-    def mostrar(self):
+    def mostrar(self) -> str:
         if not self.__cursos:
             return "No hay cursos registrados"
 
@@ -36,7 +77,10 @@ class GestionCursos:
             for curso in self.__cursos
         )
 
-    def asignar_profesor(self, codigo: str, profesor: Profesor):
+    def asignar_profesor(
+        self, codigo: str, profesor: Profesor
+    ) -> bool:
+
         curso = self.buscar_por_codigo(codigo)
 
         if curso is None:
@@ -45,7 +89,10 @@ class GestionCursos:
         curso.asignar_profesor(profesor)
         return True
 
-    def buscar_por_profesor(self, documento: int):
+    def buscar_por_profesor(
+        self, documento: int
+    ) -> list[Curso]:
+
         return [
             curso for curso in self.__cursos
             if curso.profesor is not None
