@@ -1,4 +1,5 @@
 
+from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
 from inscripciones.inscripcion import Inscripcion
@@ -30,8 +31,13 @@ class IGestionInscripciones(Protocol):
 
 class GestionInscripciones:
 
-    def __init__(self):
-        self.__inscripciones: list[Inscripcion] = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Inscripcion]] = None
+    ):
+        self.__inscripciones: MutableSequence[Inscripcion] = (
+        almacenamiento if almacenamiento is not None else []
+    )
 
     def registrar(self, inscripcion: Inscripcion) -> bool:
 
@@ -67,7 +73,7 @@ class GestionInscripciones:
         return None
 
     def listar(self) -> list[Inscripcion]:
-        return self.__inscripciones.copy()
+        return list(self.__inscripciones)
 
     def buscar_por_aprendiz(
         self, documento: int
