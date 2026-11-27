@@ -1,4 +1,5 @@
 
+from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
 from personas.aprendices import Aprendiz
@@ -20,8 +21,13 @@ class IGestionAprendices(Protocol):
 
 class Gestion_aprendices:
 
-    def __init__(self):
-        self.__aprendices: list[Aprendiz] = []
+    def __init__(
+    self,
+    almacenamiento: Optional[MutableSequence[Aprendiz]] = None
+):
+        self.__aprendices: MutableSequence[Aprendiz] = (
+        almacenamiento if almacenamiento is not None else []
+    )
 
     def buscar_documento(
         self, documento: int
@@ -55,4 +61,4 @@ class Gestion_aprendices:
         print(aprendiz.mostrar_informacion())
 
     def listar(self) -> list[Aprendiz]:
-        return self.__aprendices.copy()
+        return list(self.__aprendices)
