@@ -1,4 +1,3 @@
-
 import unittest
 from collections import UserList
 from typing import Optional
@@ -50,10 +49,44 @@ class GestionProfesoresAlternativa:
     def listar(self) -> list[Profesor]:
         return list(self.__profesores.values())
 
+
+
 class TestGestionAcademica(unittest.TestCase):
 
+    def crear_sistema(
+        self,
+        profesores=None,
+        aprendices=None,
+        cursos=None,
+        inscripciones=None,
+        calificaciones=None
+    ) -> GestionAcademica:
+
+        return GestionAcademica(
+            profesores=(
+                profesores if profesores is not None
+                else Gestion_profesores()
+            ),
+            aprendices=(
+                aprendices if aprendices is not None
+                else Gestion_aprendices()
+            ),
+            cursos=(
+                cursos if cursos is not None
+                else GestionCursos()
+            ),
+            inscripciones=(
+                inscripciones if inscripciones is not None
+                else GestionInscripciones()
+            ),
+            calificaciones=(
+                calificaciones if calificaciones is not None
+                else GestionCalificaciones()
+            )
+        )
+
     def setUp(self):
-        self.sistema = GestionAcademica()
+        self.sistema = self.crear_sistema()
 
         self.profesor = Profesor(
             "Carlos Pérez", 123456, 35,
@@ -494,7 +527,7 @@ class TestGestionAcademica(unittest.TestCase):
     def test_inyeccion_gestion_profesores(self):
         gestor = Gestion_profesores()
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             profesores=gestor
         )
 
@@ -513,7 +546,7 @@ class TestGestionAcademica(unittest.TestCase):
     def test_inyeccion_gestion_aprendices(self):
         gestor = Gestion_aprendices()
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             aprendices=gestor
         )
 
@@ -532,7 +565,7 @@ class TestGestionAcademica(unittest.TestCase):
     def test_inyeccion_gestion_cursos(self):
         gestor = GestionCursos()
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             cursos=gestor
         )
 
@@ -551,7 +584,7 @@ class TestGestionAcademica(unittest.TestCase):
     def test_inyeccion_gestion_inscripciones(self):
         gestor = GestionInscripciones()
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             inscripciones=gestor
         )
 
@@ -572,7 +605,7 @@ class TestGestionAcademica(unittest.TestCase):
     def test_inyeccion_gestion_calificaciones(self):
         gestor = GestionCalificaciones()
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             calificaciones=gestor
         )
 
@@ -596,7 +629,7 @@ class TestGestionAcademica(unittest.TestCase):
             GestionProfesoresAlternativa()
         )
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             profesores=gestor
         )
 
@@ -624,7 +657,7 @@ class TestGestionAcademica(unittest.TestCase):
             hasattr(gestor, "mostrar")
         )
 
-        sistema = GestionAcademica(
+        sistema = self.crear_sistema(
             profesores=gestor
         )
 
@@ -646,8 +679,8 @@ class TestGestionAcademica(unittest.TestCase):
         )
 
     def test_independencia_de_instancias(self):
-        sistema1 = GestionAcademica()
-        sistema2 = GestionAcademica()
+        sistema1 = self.crear_sistema()
+        sistema2 = self.crear_sistema()
 
         sistema1.registrar_profesor(self.profesor)
         sistema1.registrar_aprendiz(self.aprendiz)
