@@ -1,4 +1,3 @@
-
 import unittest
 
 from gestion_academica import GestionAcademica
@@ -100,7 +99,9 @@ class TestGestionAcademica(unittest.TestCase):
             {
                 "profesores": 0,
                 "aprendices": 0,
-                "cursos": 0
+                "cursos": 0,
+                "inscripciones": 0,
+                "calificaciones": 0
             }
         )
 
@@ -114,7 +115,9 @@ class TestGestionAcademica(unittest.TestCase):
             {
                 "profesores": 1,
                 "aprendices": 1,
-                "cursos": 1
+                "cursos": 1,
+                "inscripciones": 0,
+                "calificaciones": 0
             }
         )
 
