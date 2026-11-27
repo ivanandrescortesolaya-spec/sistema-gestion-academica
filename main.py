@@ -1,10 +1,18 @@
 
 from gestion_academica import GestionAcademica
+
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
 from cursos.curso import Curso
 from inscripciones.inscripcion import Inscripcion
 from calificaciones.calificacion import Calificacion
+
+from personas.gestion_profesores import Gestion_profesores
+from personas.gestion_aprendices import Gestion_aprendices
+from cursos.gestion_cursos import GestionCursos
+from inscripciones.gestion_inscripciones import GestionInscripciones
+from calificaciones.gestion_calificaciones import GestionCalificaciones
+
 
 
 # Funciones auxiliares
@@ -633,8 +641,16 @@ def menu_reportes(sistema: GestionAcademica):
 
 # Ejecucion principal
 
+
 def main():
-    sistema = GestionAcademica()
+    sistema = GestionAcademica(
+        profesores=Gestion_profesores(),
+        aprendices=Gestion_aprendices(),
+        cursos=GestionCursos(),
+        inscripciones=GestionInscripciones(),
+        calificaciones=GestionCalificaciones()
+    )
+
 
     while True:
         mostrar_menu()
