@@ -1,4 +1,5 @@
 
+from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
 from cursos.curso import Curso
@@ -31,8 +32,13 @@ class IGestionCursos(Protocol):
 
 class GestionCursos:
 
-    def __init__(self):
-        self.__cursos: list[Curso] = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Curso]] = None
+    ):
+            self.__cursos: MutableSequence[Curso] = (
+            almacenamiento if almacenamiento is not None else []
+        )
 
     def buscar_por_codigo(
         self, codigo: str
@@ -60,7 +66,7 @@ class GestionCursos:
         return True
 
     def listar(self) -> list[Curso]:
-        return self.__cursos.copy()
+        return list(self.__cursos)
 
     def mostrar(self) -> str:
         if not self.__cursos:
