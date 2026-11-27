@@ -1,3 +1,4 @@
+
 from calificaciones.calificacion import Calificacion
 
 
@@ -6,17 +7,17 @@ class GestionCalificaciones:
     def __init__(self):
         self.__calificaciones = []
 
-    def registrar(self, calificacion):
+    def registrar(self, calificacion: Calificacion):
         if not isinstance(calificacion, Calificacion):
-            raise ValueError("Debe ingresar una calificacion valida")
+            raise ValueError("Debe ingresar una calificación válida")
 
-        if self.buscar_por_codigo(calificacion.codigo):
-            raise ValueError("La calificacion ya existe")
+        if self.buscar_por_codigo(calificacion.codigo) is not None:
+            raise ValueError("La calificación ya existe")
 
         self.__calificaciones.append(calificacion)
         return True
 
-    def buscar_por_codigo(self, codigo):
+    def buscar_por_codigo(self, codigo: str):
         for calificacion in self.__calificaciones:
             if calificacion.codigo == codigo:
                 return calificacion
@@ -26,7 +27,7 @@ class GestionCalificaciones:
     def listar(self):
         return self.__calificaciones.copy()
 
-    def buscar_por_aprendiz(self, documento):
+    def buscar_por_aprendiz(self, documento: int):
         resultado = []
 
         for calificacion in self.__calificaciones:
@@ -35,7 +36,7 @@ class GestionCalificaciones:
 
         return resultado
 
-    def buscar_por_curso(self, codigo_curso):
+    def buscar_por_curso(self, codigo_curso: str):
         resultado = []
 
         for calificacion in self.__calificaciones:
@@ -44,13 +45,93 @@ class GestionCalificaciones:
 
         return resultado
 
-    def mostrar(self):
+    def buscar_por_inscripcion(self, codigo_inscripcion: str):
+        resultado = []
+
+        for calificacion in self.__calificaciones:
+            if calificacion.inscripcion.codigo == codigo_inscripcion:
+                resultado.append(calificacion)
+
+        return resultado
+
+    def modificar_calificacion(self, codigo: str, nueva_nota: float):
+        calificacion = self.buscar_por_codigo(codigo)
+
+        if calificacion is None:
+            raise ValueError("La calificación no existe")
+
+        calificacion.nota = nueva_nota
+        return True
+
+    def calcular_promedio(self, codigo_inscripcion: str) -> float:
+        calificaciones = self.buscar_por_inscripcion(
+            codigo_inscripcion
+        )
+
+        if len(calificaciones) < 3:
+            raise ValueError(
+                "Se requieren mínimo tres calificaciones"
+            )
+
+        notas = [
+            calificacion.nota
+            for calificacion in calificaciones
+        ]
+
+        return sum(notas) / len(notas)
+
+    def obtener_estado_academico(self, codigo_inscripcion: str) -> str:
+        promedio = self.calcular_promedio(codigo_inscripcion)
+
+        if promedio >= 3.0:
+            return "Aprobado"
+
+        return "Reprobado"
+
+    def consultar_rendimiento(self, codigo_inscripcion: str):
+        calificaciones = self.buscar_por_inscripcion(
+            codigo_inscripcion
+        )
+
+        if not calificaciones:
+            raise ValueError("No hay calificaciones registradas")
+
+        inscripcion = calificaciones[0].inscripcion
+
+        notas = [
+            calificacion.nota
+            for calificacion in calificaciones
+        ]
+
+        if len(notas) < 3:
+            promedio = None
+            estado = "Pendiente"
+        else:
+            promedio = round(
+                self.calcular_promedio(codigo_inscripcion), 2
+            )
+            estado = self.obtener_estado_academico(
+                codigo_inscripcion
+            )
+
+        return {
+            "inscripcion": codigo_inscripcion,
+            "aprendiz": inscripcion.aprendiz.nombre,
+            "curso": inscripcion.curso.nombre,
+            "notas": notas,
+            "promedio": promedio,
+            "estado": estado
+        }
+
+    def mostrar(self) -> str:
         if not self.__calificaciones:
             return "No hay calificaciones registradas"
 
         informacion = []
 
         for calificacion in self.__calificaciones:
-            informacion.append(calificacion.mostrar_informacion())
+            informacion.append(
+                calificacion.mostrar_informacion()
+            )
 
         return "\n\n".join(informacion)
