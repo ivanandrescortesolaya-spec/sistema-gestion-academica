@@ -1,4 +1,3 @@
-
 from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
@@ -6,6 +5,7 @@ from personas.profesores import Profesor
 
 
 class IGestionProfesores(Protocol):
+
     def registrar(self, profesor: Profesor) -> bool:
         ...
 
@@ -20,8 +20,13 @@ class IGestionProfesores(Protocol):
 
 class Gestion_profesores:
 
-    def __init__(self):
-        self.__profesores: list[Profesor] = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Profesor]] = None
+    ):
+        self.__profesores: MutableSequence[Profesor] = (
+            almacenamiento if almacenamiento is not None else []
+        )
 
     def buscar_por_documento(
         self, documento: int
@@ -55,4 +60,4 @@ class Gestion_profesores:
         print(profesor.mostrar_informacion())
 
     def listar(self) -> list[Profesor]:
-        return self.__profesores.copy()
+        return list(self.__profesores)
