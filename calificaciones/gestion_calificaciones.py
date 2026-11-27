@@ -1,4 +1,5 @@
 
+from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
 from calificaciones.calificacion import Calificacion
@@ -55,8 +56,13 @@ class IGestionCalificaciones(Protocol):
 
 class GestionCalificaciones:
 
-    def __init__(self):
-        self.__calificaciones: list[Calificacion] = []
+    def __init__(
+        self,
+        almacenamiento: Optional[MutableSequence[Calificacion]] = None
+    ):
+        self.__calificaciones: MutableSequence[Calificacion] = (
+            almacenamiento if almacenamiento is not None else []
+        )
 
     def registrar(self, calificacion: Calificacion) -> bool:
 
@@ -84,7 +90,7 @@ class GestionCalificaciones:
         return None
 
     def listar(self) -> list[Calificacion]:
-        return self.__calificaciones.copy()
+        return list(self.__calificaciones)
 
     def buscar_por_aprendiz(
         self, documento: int
