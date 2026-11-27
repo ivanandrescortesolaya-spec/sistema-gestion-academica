@@ -22,12 +22,12 @@ class IGestionAprendices(Protocol):
 class Gestion_aprendices:
 
     def __init__(
-    self,
-    almacenamiento: Optional[MutableSequence[Aprendiz]] = None
-):
+        self,
+        almacenamiento: Optional[MutableSequence[Aprendiz]] = None
+    ):
         self.__aprendices: MutableSequence[Aprendiz] = (
-        almacenamiento if almacenamiento is not None else []
-    )
+            almacenamiento if almacenamiento is not None else []
+        )
 
     def buscar_documento(
         self, documento: int
