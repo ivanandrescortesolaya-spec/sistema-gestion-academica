@@ -1,33 +1,95 @@
 
+from typing import Protocol, Optional
+
 from calificaciones.calificacion import Calificacion
+
+
+class IGestionCalificaciones(Protocol):
+
+    def registrar(self, calificacion: Calificacion) -> bool:
+        ...
+
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Calificacion]:
+        ...
+
+    def listar(self) -> list[Calificacion]:
+        ...
+
+    def buscar_por_aprendiz(
+        self, documento: int
+    ) -> list[Calificacion]:
+        ...
+
+    def buscar_por_curso(
+        self, codigo_curso: str
+    ) -> list[Calificacion]:
+        ...
+
+    def buscar_por_inscripcion(
+        self, codigo_inscripcion: str
+    ) -> list[Calificacion]:
+        ...
+
+    def modificar_calificacion(
+        self, codigo: str, nueva_nota: float
+    ) -> bool:
+        ...
+
+    def calcular_promedio(
+        self, codigo_inscripcion: str
+    ) -> float:
+        ...
+
+    def obtener_estado_academico(
+        self, codigo_inscripcion: str
+    ) -> str:
+        ...
+
+    def consultar_rendimiento(
+        self, codigo_inscripcion: str
+    ) -> dict:
+        ...
 
 
 class GestionCalificaciones:
 
     def __init__(self):
-        self.__calificaciones = []
+        self.__calificaciones: list[Calificacion] = []
 
-    def registrar(self, calificacion: Calificacion):
+    def registrar(self, calificacion: Calificacion) -> bool:
+
         if not isinstance(calificacion, Calificacion):
-            raise ValueError("Debe ingresar una calificación válida")
+            raise ValueError(
+                "Debe ingresar una calificación válida"
+            )
 
-        if self.buscar_por_codigo(calificacion.codigo) is not None:
+        if self.buscar_por_codigo(
+            calificacion.codigo
+        ) is not None:
             raise ValueError("La calificación ya existe")
 
         self.__calificaciones.append(calificacion)
         return True
 
-    def buscar_por_codigo(self, codigo: str):
+    def buscar_por_codigo(
+        self, codigo: str
+    ) -> Optional[Calificacion]:
+
         for calificacion in self.__calificaciones:
             if calificacion.codigo == codigo:
                 return calificacion
 
         return None
 
-    def listar(self):
+    def listar(self) -> list[Calificacion]:
         return self.__calificaciones.copy()
 
-    def buscar_por_aprendiz(self, documento: int):
+    def buscar_por_aprendiz(
+        self, documento: int
+    ) -> list[Calificacion]:
+
         resultado = []
 
         for calificacion in self.__calificaciones:
@@ -36,7 +98,10 @@ class GestionCalificaciones:
 
         return resultado
 
-    def buscar_por_curso(self, codigo_curso: str):
+    def buscar_por_curso(
+        self, codigo_curso: str
+    ) -> list[Calificacion]:
+
         resultado = []
 
         for calificacion in self.__calificaciones:
@@ -45,7 +110,10 @@ class GestionCalificaciones:
 
         return resultado
 
-    def buscar_por_inscripcion(self, codigo_inscripcion: str):
+    def buscar_por_inscripcion(
+        self, codigo_inscripcion: str
+    ) -> list[Calificacion]:
+
         resultado = []
 
         for calificacion in self.__calificaciones:
@@ -54,7 +122,10 @@ class GestionCalificaciones:
 
         return resultado
 
-    def modificar_calificacion(self, codigo: str, nueva_nota: float):
+    def modificar_calificacion(
+        self, codigo: str, nueva_nota: float
+    ) -> bool:
+
         calificacion = self.buscar_por_codigo(codigo)
 
         if calificacion is None:
@@ -63,7 +134,10 @@ class GestionCalificaciones:
         calificacion.nota = nueva_nota
         return True
 
-    def calcular_promedio(self, codigo_inscripcion: str) -> float:
+    def calcular_promedio(
+        self, codigo_inscripcion: str
+    ) -> float:
+
         calificaciones = self.buscar_por_inscripcion(
             codigo_inscripcion
         )
@@ -80,21 +154,31 @@ class GestionCalificaciones:
 
         return sum(notas) / len(notas)
 
-    def obtener_estado_academico(self, codigo_inscripcion: str) -> str:
-        promedio = self.calcular_promedio(codigo_inscripcion)
+    def obtener_estado_academico(
+        self, codigo_inscripcion: str
+    ) -> str:
+
+        promedio = self.calcular_promedio(
+            codigo_inscripcion
+        )
 
         if promedio >= 3.0:
             return "Aprobado"
 
         return "Reprobado"
 
-    def consultar_rendimiento(self, codigo_inscripcion: str):
+    def consultar_rendimiento(
+        self, codigo_inscripcion: str
+    ) -> dict:
+
         calificaciones = self.buscar_por_inscripcion(
             codigo_inscripcion
         )
 
         if not calificaciones:
-            raise ValueError("No hay calificaciones registradas")
+            raise ValueError(
+                "No hay calificaciones registradas"
+            )
 
         inscripcion = calificaciones[0].inscripcion
 
@@ -106,10 +190,15 @@ class GestionCalificaciones:
         if len(notas) < 3:
             promedio = None
             estado = "Pendiente"
+
         else:
             promedio = round(
-                self.calcular_promedio(codigo_inscripcion), 2
+                self.calcular_promedio(
+                    codigo_inscripcion
+                ),
+                2
             )
+
             estado = self.obtener_estado_academico(
                 codigo_inscripcion
             )
@@ -124,6 +213,7 @@ class GestionCalificaciones:
         }
 
     def mostrar(self) -> str:
+
         if not self.__calificaciones:
             return "No hay calificaciones registradas"
 
