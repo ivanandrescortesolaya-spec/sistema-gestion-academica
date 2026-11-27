@@ -1,11 +1,11 @@
 
+from collections.abc import MutableSequence
 from typing import Protocol, Optional
 
 from personas.profesores import Profesor
 
 
 class IGestionProfesores(Protocol):
-
     def registrar(self, profesor: Profesor) -> bool:
         ...
 
