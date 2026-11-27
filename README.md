@@ -2,209 +2,216 @@
 
 ## Descripción
 
-Sistema de gestión académica desarrollado en Python mediante
-Programación Orientada a Objetos (POO), siguiendo los principios
-SOLID y utilizando una interfaz interactiva por consola.
+Aplicación de consola desarrollada en Python mediante Programación Orientada a Objetos (POO) y los principios SOLID. Permite administrar profesores, aprendices, cursos, inscripciones, calificaciones y reportes académicos.
 
-El sistema permite administrar profesores, aprendices y cursos.
-También contempla la gestión de inscripciones, calificaciones
-y reportes académicos.
-
-La información se almacena temporalmente en memoria, sin utilizar
-bases de datos ni frameworks externos.
+La información se almacena temporalmente en memoria, sin bases de datos, frameworks ni dependencias externas.
 
 ## Objetivo general
 
-Desarrollar un sistema académico modular que permita gestionar
-información académica mediante buenas prácticas de programación,
-aplicando los pilares de POO y los principios SOLID.
+Desarrollar un sistema académico modular que permita gestionar la formación titulada y complementaria, aplicando buenas prácticas de programación y control de versiones colaborativo.
 
 ## Tecnologías utilizadas
 
-- Python 3.10 o superior.
-- Programación Orientada a Objetos.
-- Unittest.
-- Git.
-- GitHub.
+- Python 3.10 o superior (pruebas realizadas con Python 3.14.4).
+- Biblioteca estándar de Python: `abc`, `typing`, `collections`, `datetime` y `unittest`.
+- Git y GitHub.
 - Visual Studio Code.
 
 ## Funcionalidades implementadas
 
 ### Gestión de profesores
 
-- Registrar profesores.
-- Buscar profesores por documento.
-- Listar profesores registrados.
-- Validar información personal y profesional.
-- Evitar registros duplicados.
-- Consultar cursos asignados.
+- Registrar nombre, documento, edad, profesión, código y especialidad.
+- Buscar por documento y listar profesores.
+- Validar datos y evitar documentos duplicados.
+- Consultar cursos asignados y aprendices inscritos en dichos cursos.
 
 ### Gestión de aprendices
 
-- Registrar aprendices.
-- Buscar aprendices por documento.
-- Listar aprendices registrados.
-- Validar información personal y de contacto.
-- Evitar registros duplicados.
+- Registrar nombre, documento, edad, teléfono, correo y dirección.
+- Buscar por documento y listar aprendices.
+- Validar datos personales y de contacto, y evitar documentos duplicados.
+- Consultar cursos en los que se encuentran inscritos.
 
 ### Gestión de cursos
 
-- Registrar cursos.
-- Buscar cursos por código.
-- Listar cursos registrados.
+- Registrar código, nombre, descripción, duración en horas y modalidad.
 - Gestionar modalidades titulada y complementaria.
-- Asignar profesores registrados.
-- Validar duración y datos del curso.
-- Evitar códigos duplicados.
+- Buscar por código y listar cursos.
+- Asignar profesores registrados y consultar aprendices inscritos.
+- Validar datos y evitar códigos duplicados.
 
 ### Gestión de inscripciones
 
-Módulo a cargo del integrante 2, pendiente de integración.
+- Registrar la relación muchos a muchos entre aprendices y cursos.
+- Validar que el aprendiz y el curso estén registrados.
+- Evitar códigos duplicados e inscripciones repetidas para el mismo aprendiz y curso.
+- Registrar fecha y estado de inscripción.
+- Buscar, listar y consultar inscripciones por aprendiz o curso.
+- Cancelar y finalizar inscripciones.
 
 ### Gestión de calificaciones
 
-Módulo a cargo del integrante 2, pendiente de integración.
+- Registrar calificaciones asociadas a una inscripción existente.
+- Validar notas entre 0.0 y 5.0.
+- Buscar, listar y modificar calificaciones.
+- Consultar calificaciones por aprendiz, curso o inscripción.
+- Calcular el promedio cuando existen al menos tres notas.
+- Mostrar el promedio con dos decimales y determinar el estado académico: Aprobado (promedio mínimo de 3.0), Reprobado o Pendiente (menos de tres notas).
 
 ### Reportes académicos
 
-- Cantidad de profesores registrados.
-- Cantidad de aprendices registrados.
-- Cantidad de cursos registrados.
-- Consulta de cursos asignados a profesores.
+- Resumen de cantidades de profesores, aprendices, cursos, inscripciones y calificaciones.
+- Reporte general de calificaciones con promedio general, nota máxima y mínima.
+- Consulta de rendimiento por aprendiz, curso e inscripción.
 
 ## Estructura del proyecto
 
 ```text
 sistema-gestion-academica/
-│
 ├── personas/
-│   ├── __init__.py
 │   ├── personas.py
 │   ├── profesores.py
 │   ├── gestion_profesores.py
 │   ├── aprendices.py
 │   └── gestion_aprendices.py
-│
 ├── cursos/
-│   ├── __init__.py
 │   ├── curso.py
 │   └── gestion_cursos.py
-│
 ├── inscripciones/
-│
+│   ├── __init__.py
+│   ├── inscripcion.py
+│   └── gestion_inscripciones.py
 ├── calificaciones/
-│
+│   ├── __init__.py
+│   ├── calificacion.py
+│   └── gestion_calificaciones.py
 ├── tests/
 │   ├── __init__.py
 │   ├── test_personas.py
 │   ├── test_profesores.py
 │   ├── test_aprendices.py
 │   ├── test_cursos.py
+│   ├── test_inscripciones.py
+│   ├── test_calificaciones.py
 │   ├── test_gestion_academica.py
 │   └── test_main.py
-│
 ├── gestion_academica.py
 ├── main.py
 ├── .gitignore
 └── README.md
 ```
 
-## Programación Orientada a Objetos
+## Arquitectura y relaciones
+
+- Las entidades representan los datos y comportamientos del dominio académico.
+- Los gestores administran registros, búsquedas, validaciones y consultas.
+- `GestionAcademica` coordina los cinco gestores y valida las relaciones entre entidades.
+- `main.py` configura las dependencias y controla la interacción por consola.
+
+```mermaid
+classDiagram
+    Persona <|-- Profesor
+    Persona <|-- Aprendiz
+    Profesor "0..1" -- "0..*" Curso : responsable
+    Aprendiz "1" -- "0..*" Inscripcion
+    Curso "1" -- "0..*" Inscripcion
+    Inscripcion "1" -- "0..*" Calificacion
+```
+
+Un profesor puede tener varios cursos asignados. Un aprendiz puede inscribirse en varios cursos y un curso puede tener varios aprendices mediante `Inscripcion`. Cada calificación pertenece a una inscripción.
+
+## Pilares de Programación Orientada a Objetos
 
 ### Encapsulamiento
 
-Se utilizan atributos privados, propiedades y métodos de
-validación para controlar el acceso a la información.
+Las entidades utilizan atributos privados, propiedades y setters para controlar el acceso y validar los datos. Por ejemplo, `Calificacion` valida el rango de la nota y `Curso` valida la duración y modalidad.
 
 ### Abstracción
 
-La clase Persona define una estructura común mediante
-clases y métodos abstractos.
+`Persona` define un contrato común mediante métodos abstractos como `mostrar_informacion()` y `obtener_rol()`. Los protocolos de gestión también abstraen las operaciones de los gestores.
 
 ### Herencia
 
-Las clases Profesor y Aprendiz heredan los atributos y
-comportamientos de la clase Persona.
+`Profesor` y `Aprendiz` heredan de `Persona`, reutilizando los atributos y comportamientos comunes.
 
 ### Polimorfismo
 
-Las clases Profesor y Aprendiz implementan sus propias
-versiones de los métodos:
-
-- mostrar_informacion()
-- obtener_rol()
+`Profesor` y `Aprendiz` implementan sus propias versiones de `mostrar_informacion()` y `obtener_rol()`, permitiendo utilizar objetos derivados mediante un contrato común.
 
 ## Principios SOLID
 
-### S - Single Responsibility Principle (SRP)
+### S — Single Responsibility Principle (SRP)
 
-Cada clase tiene una responsabilidad definida.
+Las entidades representan información académica, los gestores administran operaciones específicas, `GestionAcademica` coordina los módulos y `main.py` controla la interfaz de consola.
 
-Las entidades representan información académica, los gestores
-administran las operaciones y el menú controla la interacción
-con el usuario.
+### O — Open/Closed Principle (OCP)
 
-### O - Open/Closed Principle (OCP)
+`Curso` permite extender las modalidades mediante el atributo de clase `MODALIDADES_VALIDAS`, sin modificar la clase base. Ejemplo de extensión utilizado como concepto en las pruebas:
 
-La estructura modular facilita la incorporación de nuevas
-funcionalidades.
+```python
+class CursoExtendido(Curso):
+    MODALIDADES_VALIDAS = Curso.MODALIDADES_VALIDAS | {"especializacion"}
+```
 
-La extensibilidad de las modalidades de cursos está pendiente
-de revisión.
+La modalidad adicional es un ejemplo de extensibilidad, no una nueva modalidad oficial del sistema.
 
-### L - Liskov Substitution Principle (LSP)
+### L — Liskov Substitution Principle (LSP)
 
-Las clases Profesor y Aprendiz pueden utilizarse mediante
-el contrato definido por la clase Persona.
+`Profesor` y `Aprendiz` respetan el contrato de `Persona`. Las pruebas también verifican que una clase derivada de `Curso` pueda utilizarse en las operaciones de gestión de cursos.
 
-### I - Interface Segregation Principle (ISP)
+### I — Interface Segregation Principle (ISP)
 
-Se busca mantener contratos pequeños y específicos para
-evitar dependencias innecesarias.
+Se definen protocolos específicos para las operaciones requeridas de cada gestor:
 
-Pendiente de revisión final.
+- `IGestionProfesores`
+- `IGestionAprendices`
+- `IGestionCursos`
+- `IGestionInscripciones`
+- `IGestionCalificaciones`
 
-### D - Dependency Inversion Principle (DIP)
+Los contratos excluyen operaciones de presentación innecesarias para la coordinación académica.
 
-Se utiliza la clase GestionAcademica para centralizar las
-operaciones del sistema.
+### D — Dependency Inversion Principle (DIP)
 
-La dependencia de abstracciones de almacenamiento está
-pendiente de revisión.
+`GestionAcademica` recibe obligatoriamente sus cinco dependencias mediante protocolos, sin construir gestores concretos internamente. `main.py` configura las implementaciones:
 
-## Instalación
+```python
+sistema = GestionAcademica(
+    profesores=Gestion_profesores(),
+    aprendices=Gestion_aprendices(),
+    cursos=GestionCursos(),
+    inscripciones=GestionInscripciones(),
+    calificaciones=GestionCalificaciones()
+)
+```
+
+Los gestores aceptan almacenamiento mediante la abstracción `MutableSequence`, utilizando listas por defecto. Las pruebas verifican el uso de implementaciones alternativas como `UserList`, sin incorporar persistencia permanente.
+
+## Instalación y ejecución
 
 Clonar el repositorio:
 
 ```bash
 git clone https://github.com/ivanandrescortesolaya-spec/sistema-gestion-academica.git
-```
-
-Ingresar al directorio:
-
-```bash
 cd sistema-gestion-academica
 ```
 
-Cambiar a la rama de desarrollo:
+Para consultar la versión integrada de desarrollo:
 
 ```bash
 git switch develop
+git pull origin develop
 ```
 
-Verificar la versión de Python:
+Verificar Python y ejecutar el sistema:
 
 ```bash
 python3 --version
+python3 main.py
 ```
 
 No es necesario instalar dependencias externas.
-
-## Ejecución
-
-```bash
-python3 main.py
-```
 
 ## Menú principal
 
@@ -221,100 +228,87 @@ python3 main.py
 0. Salir
 ```
 
-Las opciones de inscripciones y calificaciones están
-pendientes de integración.
+### Flujo de uso sugerido
+
+1. Registrar un profesor y un aprendiz.
+2. Registrar un curso y asignarle el profesor.
+3. Inscribir al aprendiz en el curso.
+4. Registrar al menos tres calificaciones para la inscripción.
+5. Consultar el promedio, estado académico y reportes.
 
 ## Pruebas automatizadas
 
-El proyecto utiliza unittest, perteneciente a la biblioteca
-estándar de Python.
-
-Para ejecutar todas las pruebas:
+El proyecto utiliza `unittest` para comprobar entidades, gestores, integración académica, menús y casos relacionados con SOLID.
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
+Para ejecutar un módulo específico:
+
+```bash
+python3 -m unittest discover -s tests -p "test_gestion_academica.py" -v
+```
+
 ### Distribución de pruebas
 
 | Módulo | Pruebas |
-|--------|--------:|
-| Persona | 6 |
+|---|---:|
+| Personas | 6 |
 | Profesores | 8 |
 | Aprendices | 12 |
-| Cursos | 20 |
-| GestionAcademica | 10 |
-| Menú interactivo | 8 |
-| Total | 64 |
+| Cursos | 24 |
+| Inscripciones | 20 |
+| Calificaciones | 31 |
+| Gestión académica | 45 |
+| Menú de consola | 36 |
+| **Total** | **182** |
+
+Último resultado confirmado en `develop`, después de integrar el Pull Request #14 (`f8573ab`): 182 pruebas aprobadas, sin errores ni fallos.
 
 ## Control de versiones
 
-El proyecto utiliza Git y GitHub mediante una estrategia
-de ramas de desarrollo.
+El proyecto utiliza Git y GitHub con un flujo de ramas de funcionalidades, correcciones y documentación, integradas mediante Pull Requests y commits descriptivos en inglés.
 
-### Ramas principales
+- `main`: rama principal.
+- `develop`: rama de integración.
+- `feature/integrante-2-inscripciones-calificaciones`: integración de módulos del integrante 2.
+- `fix/inscripciones`: correcciones de inscripciones.
+- `fix/calificaciones`: correcciones de calificaciones.
+- `fix/integracion-academica`: integración académica.
+- `fix/menu-consola`: mejoras del menú.
+- `fix/solid-principles`: refactorización SOLID.
+- `docs/final-documentation`: actualización de documentación.
 
-- main
-- develop
-
-### Ramas de funcionalidades
-
-- feature/gestion-profesores
-- feature/gestion-aprendices
-- feature/gestion-cursos
-- feature/inscripciones
-- feature/calificaciones
-- feature/tests
-- feature/gestion-academica
-- feature/menu-consola
-- feature/documentation
-
-Los cambios se integran mediante Pull Requests y commits
-descriptivos en inglés.
+Las ramas anteriores describen el trabajo realizado; las ramas de funcionalidades pueden eliminarse después de su integración.
 
 ## Distribución de responsabilidades
 
 ### Integrante 1
 
-- Clase abstracta Persona.
-- Gestión de profesores.
-- Gestión de aprendices.
-- Gestión de cursos.
-- GestionAcademica.
-- Menú interactivo.
-- Pruebas automatizadas.
-- Documentación.
+- Clase abstracta Persona, profesores, aprendices y cursos.
+- Gestión académica centralizada y menú interactivo.
+- Pruebas automatizadas, integración, refactorización SOLID y documentación.
 
 ### Integrante 2
 
-- Gestión de inscripciones.
-- Gestión de calificaciones.
-- Consultas académicas.
-- Reportes de calificaciones.
+- Gestión de inscripciones y calificaciones.
+- Consultas académicas y reportes de calificaciones correspondientes a sus módulos.
 
-## Almacenamiento de información
+## Almacenamiento y alcance
 
-El sistema utiliza almacenamiento temporal en memoria mediante
-estructuras de datos de Python.
-
-Los registros permanecen disponibles durante la ejecución
-del programa y se eliminan al finalizarlo.
-
-No se utilizan bases de datos ni mecanismos de persistencia
-permanente.
+Los registros permanecen disponibles durante la ejecución del programa y se pierden al finalizarlo. El sistema no utiliza bases de datos, archivos de persistencia ni autenticación de usuarios. Las operaciones se realizan mediante el menú de consola.
 
 ## Estado del proyecto
 
-- [x] Gestión de profesores.
-- [x] Gestión de aprendices.
-- [x] Gestión de cursos.
-- [x] Gestión académica centralizada.
+- [x] Gestión de profesores, aprendices y cursos.
+- [x] Gestión de inscripciones y calificaciones.
+- [x] Gestión académica centralizada y reportes.
 - [x] Menú interactivo.
-- [x] Pruebas unitarias y de integración.
-- [ ] Integración de inscripciones.
-- [ ] Integración de calificaciones.
-- [ ] Reportes académicos completos.
-- [ ] Revisión final de SOLID.
+- [x] Implementación de los cuatro pilares de POO.
+- [x] Refactorización de los cinco principios SOLID.
+- [x] 182 pruebas automatizadas aprobadas en develop.
+- [x] Integración de SOLID mediante Pull Request #14.
 
 ## Contexto académico
 
