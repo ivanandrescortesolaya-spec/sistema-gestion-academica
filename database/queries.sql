@@ -847,3 +847,232 @@ ORDER BY ca.codigo;
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: RENDIMIENTO ACADEMICO
+-- ============================================
+
+START TRANSACTION;
+
+-- 1. Obtener modalidad existente
+
+SET @id_modalidad = (
+    SELECT id_modalidad
+    FROM modalidad
+    WHERE nombre = 'titulada'
+);
+
+-- 2. Registrar aprendices de demostracion
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('9200000001', 'Aprendiz aprobado', 22);
+
+SET @id_aprendiz_aprobado = LAST_INSERT_ID();
+
+INSERT INTO aprendiz
+    (id_persona, telefono, correo, direccion)
+VALUES
+    (@id_aprendiz_aprobado, '3001234567',
+    'aprobado@example.com', 'Calle 50');
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('9200000002', 'Aprendiz reprobado', 23);
+
+SET @id_aprendiz_reprobado = LAST_INSERT_ID();
+
+INSERT INTO aprendiz
+    (id_persona, telefono, correo, direccion)
+VALUES
+    (@id_aprendiz_reprobado, '3101234567',
+    'reprobado@example.com', 'Calle 51');
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('9200000003', 'Aprendiz pendiente', 21);
+
+SET @id_aprendiz_pendiente = LAST_INSERT_ID();
+
+INSERT INTO aprendiz
+    (id_persona, telefono, correo, direccion)
+VALUES
+    (@id_aprendiz_pendiente, '3201234567',
+    'pendiente@example.com', 'Calle 52');
+
+-- 3. Registrar curso de demostracion
+
+INSERT INTO curso
+    (codigo, nombre, descripcion, duracion_horas, id_modalidad)
+VALUES
+    ('CUR920', 'Programacion orientada a objetos',
+    'Fundamentos de POO y SOLID', 120, @id_modalidad);
+
+SET @id_curso = LAST_INSERT_ID();
+
+-- 4. Registrar inscripciones
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS920', @id_aprendiz_aprobado, @id_curso);
+
+SET @id_inscripcion_aprobada = LAST_INSERT_ID();
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS921', @id_aprendiz_reprobado, @id_curso);
+
+SET @id_inscripcion_reprobada = LAST_INSERT_ID();
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS922', @id_aprendiz_pendiente, @id_curso);
+
+SET @id_inscripcion_pendiente = LAST_INSERT_ID();
+
+-- 5. Registrar calificaciones
+
+INSERT INTO calificacion (codigo, id_inscripcion, nota)
+VALUES
+    ('CAL920', @id_inscripcion_aprobada, 4.80),
+    ('CAL921', @id_inscripcion_aprobada, 3.80),
+    ('CAL922', @id_inscripcion_aprobada, 4.20),
+    ('CAL923', @id_inscripcion_reprobada, 2.00),
+    ('CAL924', @id_inscripcion_reprobada, 2.50),
+    ('CAL925', @id_inscripcion_reprobada, 2.80),
+    ('CAL926', @id_inscripcion_pendiente, 4.50),
+    ('CAL927', @id_inscripcion_pendiente, 4.00);
+
+-- 6. Calcular promedio por inscripcion
+
+SELECT
+    i.codigo AS inscripcion,
+    COUNT(ca.id_calificacion) AS total_calificaciones,
+    CASE
+        WHEN COUNT(ca.id_calificacion) >= 3
+        THEN CAST(
+            (
+                (2 * SUM(ca.nota * 100)
+                + COUNT(ca.id_calificacion))
+                DIV (2 * COUNT(ca.id_calificacion))
+            ) / 100 AS DECIMAL(3,2)
+        )
+        ELSE NULL
+    END AS promedio
+FROM inscripcion AS i
+LEFT JOIN calificacion AS ca
+    ON i.id_inscripcion = ca.id_inscripcion
+WHERE i.id_inscripcion = @id_inscripcion_aprobada
+GROUP BY i.id_inscripcion, i.codigo;
+
+-- 7. Consultar rendimiento por aprendiz
+
+SELECT
+    p.documento,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    i.codigo AS inscripcion,
+    COUNT(ca.id_calificacion) AS total_calificaciones,
+    CASE
+        WHEN COUNT(ca.id_calificacion) >= 3
+        THEN CAST(
+            (
+                (2 * SUM(ca.nota * 100)
+                + COUNT(ca.id_calificacion))
+                DIV (2 * COUNT(ca.id_calificacion))
+            ) / 100 AS DECIMAL(3,2)
+        )
+        ELSE NULL
+    END AS promedio,
+    CASE
+        WHEN COUNT(ca.id_calificacion) < 3
+            THEN 'Pendiente'
+        WHEN SUM(ca.nota) * 200
+             >= COUNT(ca.id_calificacion) * 599
+            THEN 'Aprobado'
+        ELSE 'Reprobado'
+    END AS estado_academico
+FROM inscripcion AS i
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+LEFT JOIN calificacion AS ca
+    ON i.id_inscripcion = ca.id_inscripcion
+WHERE i.id_aprendiz = @id_aprendiz_aprobado
+GROUP BY
+    i.id_inscripcion,
+    i.codigo,
+    p.documento,
+    p.nombre,
+    c.nombre;
+
+-- 8. Consultar rendimiento por curso
+
+SELECT
+    c.codigo AS codigo_curso,
+    c.nombre AS curso,
+    p.documento,
+    p.nombre AS aprendiz,
+    i.codigo AS inscripcion,
+    COUNT(ca.id_calificacion) AS total_calificaciones,
+    CASE
+        WHEN COUNT(ca.id_calificacion) >= 3
+        THEN CAST(
+            (
+                (2 * SUM(ca.nota * 100)
+                + COUNT(ca.id_calificacion))
+                DIV (2 * COUNT(ca.id_calificacion))
+            ) / 100 AS DECIMAL(3,2)
+        )
+        ELSE NULL
+    END AS promedio,
+    CASE
+        WHEN COUNT(ca.id_calificacion) < 3
+            THEN 'Pendiente'
+        WHEN SUM(ca.nota) * 200
+             >= COUNT(ca.id_calificacion) * 599
+            THEN 'Aprobado'
+        ELSE 'Reprobado'
+    END AS estado_academico
+FROM inscripcion AS i
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+LEFT JOIN calificacion AS ca
+    ON i.id_inscripcion = ca.id_inscripcion
+WHERE i.id_curso = @id_curso
+GROUP BY
+    i.id_inscripcion,
+    i.codigo,
+    c.codigo,
+    c.nombre,
+    p.documento,
+    p.nombre
+ORDER BY p.nombre;
+
+-- 9. Consultar estadisticas de calificaciones
+
+SELECT
+    c.codigo,
+    c.nombre AS curso,
+    COUNT(ca.id_calificacion) AS total_calificaciones,
+    ROUND(AVG(ca.nota), 2) AS promedio_general,
+    MAX(ca.nota) AS nota_maxima,
+    MIN(ca.nota) AS nota_minima
+FROM curso AS c
+INNER JOIN inscripcion AS i
+    ON c.id_curso = i.id_curso
+INNER JOIN calificacion AS ca
+    ON i.id_inscripcion = ca.id_inscripcion
+WHERE c.id_curso = @id_curso
+GROUP BY
+    c.id_curso,
+    c.codigo,
+    c.nombre;
+
+-- Revertir los datos de demostracion
+
+ROLLBACK;
