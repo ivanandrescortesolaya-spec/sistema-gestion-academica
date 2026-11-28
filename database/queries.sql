@@ -214,3 +214,92 @@ WHERE a.id_persona = @id_aprendiz;
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: MODALIDADES
+-- ============================================
+
+START TRANSACTION;
+
+-- 1. Listar modalidades
+
+SELECT
+    id_modalidad,
+    nombre,
+    descripcion
+FROM modalidad
+ORDER BY nombre;
+
+-- 2. Buscar modalidad por nombre
+
+SELECT
+    id_modalidad,
+    nombre,
+    descripcion
+FROM modalidad
+WHERE nombre = 'titulada';
+
+-- 3. Registrar una modalidad de demostracion
+
+INSERT INTO modalidad (nombre, descripcion)
+VALUES (
+    'especializacion',
+    'Formacion especializada de demostracion'
+);
+
+SET @id_modalidad_demo = LAST_INSERT_ID();
+
+-- 4. Buscar modalidad por identificador
+
+SELECT
+    id_modalidad,
+    nombre,
+    descripcion
+FROM modalidad
+WHERE id_modalidad = @id_modalidad_demo;
+
+-- 5. Actualizar descripcion
+
+UPDATE modalidad
+SET descripcion = 'Formacion especializada actualizada'
+WHERE id_modalidad = @id_modalidad_demo;
+
+-- 6. Consultar cursos por modalidad
+
+SELECT
+    m.nombre AS modalidad,
+    c.codigo AS codigo_curso,
+    c.nombre AS curso,
+    c.duracion_horas
+FROM modalidad AS m
+INNER JOIN curso AS c
+    ON m.id_modalidad = c.id_modalidad
+WHERE m.nombre = 'titulada';
+
+-- 7. Contar cursos por modalidad
+
+SELECT
+    m.id_modalidad,
+    m.nombre AS modalidad,
+    COUNT(c.id_curso) AS total_cursos
+FROM modalidad AS m
+LEFT JOIN curso AS c
+    ON m.id_modalidad = c.id_modalidad
+GROUP BY
+    m.id_modalidad,
+    m.nombre
+ORDER BY m.nombre;
+
+-- 8. Verificar modalidad actualizada
+
+SELECT
+    id_modalidad,
+    nombre,
+    descripcion
+FROM modalidad
+WHERE id_modalidad = @id_modalidad_demo;
+
+-- Revertir los datos de demostracion
+
+ROLLBACK;
