@@ -1,3 +1,4 @@
+
 # Archivos generados por Python
 __pycache__/
 *.pyc
@@ -9,3 +10,15 @@ venv/
 
 # Configuración de VS Code
 .vscode/
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Archivos de registro
+*.log
+
+# Copias de seguridad de la base de datos
+backups/
+*.sql.gz
