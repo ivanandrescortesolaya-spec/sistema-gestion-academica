@@ -1076,3 +1076,232 @@ GROUP BY
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: REPORTES GENERALES
+-- ============================================
+
+-- 1. Resumen general del sistema
+
+SELECT
+    (SELECT COUNT(*) FROM persona) AS total_personas,
+    (SELECT COUNT(*) FROM profesor) AS total_profesores,
+    (SELECT COUNT(*) FROM aprendiz) AS total_aprendices,
+    (SELECT COUNT(*) FROM modalidad) AS total_modalidades,
+    (SELECT COUNT(*) FROM curso) AS total_cursos,
+    (SELECT COUNT(*) FROM inscripcion) AS total_inscripciones,
+    (SELECT COUNT(*) FROM calificacion) AS total_calificaciones;
+
+-- 2. Reporte de profesores y cursos asignados
+
+SELECT
+    pr.codigo AS codigo_profesor,
+    p.documento,
+    p.nombre AS profesor,
+    pr.especialidad,
+    COUNT(c.id_curso) AS total_cursos
+FROM profesor AS pr
+INNER JOIN persona AS p
+    ON pr.id_persona = p.id_persona
+LEFT JOIN curso AS c
+    ON pr.id_persona = c.id_profesor
+GROUP BY
+    pr.id_persona,
+    pr.codigo,
+    p.documento,
+    p.nombre,
+    pr.especialidad
+ORDER BY total_cursos DESC, p.nombre;
+
+-- 3. Reporte de cursos por modalidad
+
+SELECT
+    m.nombre AS modalidad,
+    COUNT(c.id_curso) AS total_cursos,
+    COALESCE(SUM(c.duracion_horas), 0) AS total_horas
+FROM modalidad AS m
+LEFT JOIN curso AS c
+    ON m.id_modalidad = c.id_modalidad
+GROUP BY m.id_modalidad, m.nombre
+ORDER BY m.nombre;
+
+-- 4. Reporte de cursos sin profesor
+
+SELECT
+    c.codigo,
+    c.nombre AS curso,
+    c.duracion_horas,
+    m.nombre AS modalidad
+FROM curso AS c
+INNER JOIN modalidad AS m
+    ON c.id_modalidad = m.id_modalidad
+WHERE c.id_profesor IS NULL
+ORDER BY c.nombre;
+
+-- 5. Reporte de inscripciones por curso
+
+SELECT
+    c.codigo,
+    c.nombre AS curso,
+    COUNT(i.id_inscripcion) AS total_inscripciones,
+    SUM(
+        CASE WHEN i.estado = 'Activa'
+        THEN 1 ELSE 0 END
+    ) AS activas,
+    SUM(
+        CASE WHEN i.estado = 'Cancelada'
+        THEN 1 ELSE 0 END
+    ) AS canceladas,
+    SUM(
+        CASE WHEN i.estado = 'Finalizada'
+        THEN 1 ELSE 0 END
+    ) AS finalizadas
+FROM curso AS c
+LEFT JOIN inscripcion AS i
+    ON c.id_curso = i.id_curso
+GROUP BY c.id_curso, c.codigo, c.nombre
+ORDER BY total_inscripciones DESC, c.nombre;
+
+-- 6. Reporte de aprendices sin inscripciones
+
+SELECT
+    p.documento,
+    p.nombre AS aprendiz,
+    a.correo,
+    a.telefono
+FROM aprendiz AS a
+INNER JOIN persona AS p
+    ON a.id_persona = p.id_persona
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM inscripcion AS i
+    WHERE i.id_aprendiz = a.id_persona
+)
+ORDER BY p.nombre;
+
+-- 7. Reporte general de calificaciones
+
+SELECT
+    COUNT(*) AS total_calificaciones,
+    ROUND(AVG(nota), 2) AS promedio_general,
+    MAX(nota) AS nota_maxima,
+    MIN(nota) AS nota_minima
+FROM calificacion;
+
+-- 8. Reporte detallado de rendimiento academico
+
+WITH rendimiento AS (
+    SELECT
+        i.id_inscripcion,
+        i.codigo AS inscripcion,
+        p.documento,
+        p.nombre AS aprendiz,
+        c.codigo AS codigo_curso,
+        c.nombre AS curso,
+        i.estado AS estado_inscripcion,
+        COUNT(ca.id_calificacion) AS total_calificaciones,
+        CASE
+            WHEN COUNT(ca.id_calificacion) >= 3
+            THEN CAST(
+                (
+                    (2 * SUM(ca.nota * 100)
+                    + COUNT(ca.id_calificacion))
+                    DIV (2 * COUNT(ca.id_calificacion))
+                ) / 100 AS DECIMAL(3,2)
+            )
+            ELSE NULL
+        END AS promedio
+    FROM inscripcion AS i
+    INNER JOIN persona AS p
+        ON i.id_aprendiz = p.id_persona
+    INNER JOIN curso AS c
+        ON i.id_curso = c.id_curso
+    LEFT JOIN calificacion AS ca
+        ON i.id_inscripcion = ca.id_inscripcion
+    GROUP BY
+        i.id_inscripcion,
+        i.codigo,
+        p.documento,
+        p.nombre,
+        c.codigo,
+        c.nombre,
+        i.estado
+)
+SELECT
+    inscripcion,
+    documento,
+    aprendiz,
+    codigo_curso,
+    curso,
+    estado_inscripcion,
+    total_calificaciones,
+    promedio,
+    CASE
+        WHEN promedio IS NULL THEN 'Pendiente'
+        WHEN promedio >= 3.00 THEN 'Aprobado'
+        ELSE 'Reprobado'
+    END AS estado_academico
+FROM rendimiento
+ORDER BY curso, aprendiz;
+
+-- 9. Reporte consolidado de rendimiento academico
+
+WITH rendimiento AS (
+    SELECT
+        i.id_inscripcion,
+        CASE
+            WHEN COUNT(ca.id_calificacion) < 3
+                THEN 'Pendiente'
+            WHEN SUM(ca.nota) * 200
+                 >= COUNT(ca.id_calificacion) * 599
+                THEN 'Aprobado'
+            ELSE 'Reprobado'
+        END AS estado_academico
+    FROM inscripcion AS i
+    LEFT JOIN calificacion AS ca
+        ON i.id_inscripcion = ca.id_inscripcion
+    GROUP BY i.id_inscripcion
+)
+SELECT
+    COUNT(*) AS total_inscripciones,
+    COUNT(
+        CASE WHEN estado_academico = 'Aprobado'
+        THEN 1 END
+    ) AS aprobadas,
+    COUNT(
+        CASE WHEN estado_academico = 'Reprobado'
+        THEN 1 END
+    ) AS reprobadas,
+    COUNT(
+        CASE WHEN estado_academico = 'Pendiente'
+        THEN 1 END
+    ) AS pendientes,
+    COALESCE(
+        ROUND(
+            100.0 * COUNT(
+                CASE WHEN estado_academico = 'Aprobado'
+                THEN 1 END
+            ) / NULLIF(
+                COUNT(
+                    CASE WHEN estado_academico
+                        IN ('Aprobado', 'Reprobado')
+                    THEN 1 END
+                ), 0
+            ), 2
+        ), 0
+    ) AS porcentaje_aprobacion
+FROM rendimiento;
+
+-- 10. Reporte de cursos con mayor cantidad de inscripciones
+
+SELECT
+    c.codigo,
+    c.nombre AS curso,
+    COUNT(i.id_inscripcion) AS total_inscripciones
+FROM curso AS c
+LEFT JOIN inscripcion AS i
+    ON c.id_curso = i.id_curso
+GROUP BY c.id_curso, c.codigo, c.nombre
+ORDER BY total_inscripciones DESC, c.codigo
+LIMIT 5;
