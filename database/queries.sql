@@ -640,3 +640,210 @@ ORDER BY i.codigo;
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: CALIFICACIONES
+-- ============================================
+
+START TRANSACTION;
+
+-- 1. Obtener modalidad existente
+
+SET @id_modalidad = (
+    SELECT id_modalidad
+    FROM modalidad
+    WHERE nombre = 'titulada'
+);
+
+-- 2. Registrar aprendiz de demostracion
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('9100000001', 'Aprendiz de calificaciones', 23);
+
+SET @id_aprendiz = LAST_INSERT_ID();
+
+INSERT INTO aprendiz
+    (id_persona, telefono, correo, direccion)
+VALUES
+    (@id_aprendiz, '3001234567',
+    'calificaciones@example.com', 'Calle 40');
+
+-- 3. Registrar curso de demostracion
+
+INSERT INTO curso
+    (codigo, nombre, descripcion, duracion_horas, id_modalidad)
+VALUES
+    ('CUR910', 'Bases de datos',
+    'Fundamentos de MySQL', 120, @id_modalidad);
+
+SET @id_curso = LAST_INSERT_ID();
+
+-- 4. Registrar inscripcion
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS910', @id_aprendiz, @id_curso);
+
+SET @id_inscripcion = LAST_INSERT_ID();
+
+-- 5. Bloquear la inscripcion durante la transaccion
+
+SELECT id_inscripcion, estado
+FROM inscripcion
+WHERE id_inscripcion = @id_inscripcion
+FOR UPDATE;
+
+-- 6. Registrar calificaciones en inscripcion activa
+
+INSERT INTO calificacion
+    (codigo, id_inscripcion, nota)
+SELECT 'CAL910', id_inscripcion, 4.50
+FROM inscripcion
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+INSERT INTO calificacion
+    (codigo, id_inscripcion, nota)
+SELECT 'CAL911', id_inscripcion, 3.80
+FROM inscripcion
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+INSERT INTO calificacion
+    (codigo, id_inscripcion, nota)
+SELECT 'CAL912', id_inscripcion, 4.20
+FROM inscripcion
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+-- 7. Listar calificaciones
+
+SELECT
+    ca.codigo,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    i.codigo AS inscripcion,
+    ca.nota,
+    ca.fecha
+FROM calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+ORDER BY ca.codigo;
+
+-- 8. Buscar calificacion por codigo
+
+SELECT
+    codigo,
+    id_inscripcion,
+    nota,
+    fecha
+FROM calificacion
+WHERE codigo = 'CAL910';
+
+-- 9. Consultar calificaciones por inscripcion
+
+SELECT
+    codigo,
+    nota,
+    fecha
+FROM calificacion
+WHERE id_inscripcion = @id_inscripcion
+ORDER BY codigo;
+
+-- 10. Consultar calificaciones por aprendiz
+
+SELECT
+    p.documento,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    ca.codigo,
+    ca.nota,
+    ca.fecha
+FROM calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+WHERE i.id_aprendiz = @id_aprendiz;
+
+-- 11. Consultar calificaciones por curso
+
+SELECT
+    c.codigo AS codigo_curso,
+    c.nombre AS curso,
+    p.nombre AS aprendiz,
+    ca.codigo AS codigo_calificacion,
+    ca.nota
+FROM calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+WHERE i.id_curso = @id_curso;
+
+-- 12. Modificar calificacion de inscripcion activa
+
+UPDATE calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+SET ca.nota = 4.80
+WHERE ca.codigo = 'CAL910'
+  AND i.estado = 'Activa';
+
+SELECT ROW_COUNT() AS calificaciones_modificadas;
+
+-- 13. Finalizar inscripcion
+
+UPDATE inscripcion
+SET estado = 'Finalizada'
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+-- 14. Intentar registrar nota en inscripcion finalizada
+
+INSERT INTO calificacion
+    (codigo, id_inscripcion, nota)
+SELECT 'CAL913', id_inscripcion, 5.00
+FROM inscripcion
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+SELECT ROW_COUNT() AS registros_no_permitidos;
+
+-- 15. Intentar modificar nota en inscripcion finalizada
+
+UPDATE calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+SET ca.nota = 5.00
+WHERE ca.codigo = 'CAL910'
+  AND i.estado = 'Activa';
+
+SELECT ROW_COUNT() AS modificaciones_no_permitidas;
+
+-- 16. Verificar calificaciones finales
+
+SELECT
+    ca.codigo,
+    ca.nota,
+    ca.fecha,
+    i.estado AS estado_inscripcion
+FROM calificacion AS ca
+INNER JOIN inscripcion AS i
+    ON ca.id_inscripcion = i.id_inscripcion
+WHERE ca.id_inscripcion = @id_inscripcion
+ORDER BY ca.codigo;
+
+-- Revertir los datos de demostracion
+
+ROLLBACK;
