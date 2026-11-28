@@ -1,3 +1,4 @@
+
 class ErrorPersistencia(Exception):
     """Excepción base de la capa de persistencia."""
 
@@ -16,3 +17,7 @@ class ErrorOperacion(ErrorPersistencia):
 
 class ErrorIntegridad(ErrorOperacion):
     """Incumplimiento de una restricción de integridad."""
+
+
+class ErrorInterbloqueo(ErrorOperacion):
+    """Interbloqueo de transacciones en MySQL."""
