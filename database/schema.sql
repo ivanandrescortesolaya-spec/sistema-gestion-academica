@@ -70,3 +70,36 @@ CREATE TABLE IF NOT EXISTS profesor (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- Tabla: aprendiz
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS aprendiz (
+    id_persona INT UNSIGNED NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    correo VARCHAR(254) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+
+    CONSTRAINT pk_aprendiz
+        PRIMARY KEY (id_persona),
+
+    CONSTRAINT fk_aprendiz_persona
+        FOREIGN KEY (id_persona)
+        REFERENCES persona (id_persona)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT chk_aprendiz_telefono
+        CHECK (CHAR_LENGTH(TRIM(telefono)) > 0),
+
+    CONSTRAINT chk_aprendiz_correo
+        CHECK (CHAR_LENGTH(TRIM(correo)) > 0),
+
+    CONSTRAINT chk_aprendiz_direccion
+        CHECK (CHAR_LENGTH(TRIM(direccion)) > 0)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
