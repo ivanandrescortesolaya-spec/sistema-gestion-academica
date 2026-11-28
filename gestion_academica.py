@@ -23,7 +23,9 @@ class GestionAcademica:
         aprendices: IGestionAprendices,
         cursos: IGestionCursos,
         inscripciones: IGestionInscripciones,
-        calificaciones: IGestionCalificaciones
+        calificaciones: IGestionCalificaciones,
+        *,
+        entidades_persistidas: bool = False
     ):
 
         self.__profesores: IGestionProfesores = profesores
@@ -31,6 +33,7 @@ class GestionAcademica:
         self.__cursos: IGestionCursos = cursos
         self.__inscripciones: IGestionInscripciones = inscripciones
         self.__calificaciones: IGestionCalificaciones = calificaciones
+        self.__entidades_persistidas = entidades_persistidas
 
     # Gestion de profesores
 
@@ -112,20 +115,41 @@ class GestionAcademica:
         if curso is None:
             raise ValueError("El curso no está registrado")
 
-        if aprendiz is not inscripcion.aprendiz:
+        if (
+            not self.__entidades_persistidas
+            and aprendiz is not inscripcion.aprendiz
+        ):
             raise ValueError(
                 "Debe utilizar el aprendiz registrado"
             )
 
-        if curso is not inscripcion.curso:
+        if (
+            not self.__entidades_persistidas
+            and curso is not inscripcion.curso
+        ):
             raise ValueError(
                 "Debe utilizar el curso registrado"
+            )
+
+        if self.__entidades_persistidas:
+            inscripcion = Inscripcion(
+                codigo=inscripcion.codigo,
+                aprendiz=aprendiz,
+                curso=curso,
+                fecha_inscripcion=inscripcion.fecha_inscripcion,
+                estado=inscripcion.estado
             )
 
         return self.__inscripciones.registrar(inscripcion)
 
     def buscar_inscripcion(self, codigo: str):
         return self.__inscripciones.buscar_por_codigo(codigo)
+
+    def cancelar_inscripcion(self, codigo: str):
+        return self.__inscripciones.cancelar(codigo)
+
+    def finalizar_inscripcion(self, codigo: str):
+        return self.__inscripciones.finalizar(codigo)
 
     def listar_inscripciones(self):
         return self.__inscripciones.listar()
@@ -175,9 +199,20 @@ class GestionAcademica:
         if inscripcion is None:
             raise ValueError("La inscripción no está registrada")
 
-        if inscripcion is not calificacion.inscripcion:
+        if (
+            not self.__entidades_persistidas
+            and inscripcion is not calificacion.inscripcion
+        ):
             raise ValueError(
                 "Debe utilizar la inscripción registrada"
+            )
+
+        if self.__entidades_persistidas:
+            calificacion = Calificacion(
+                codigo=calificacion.codigo,
+                inscripcion=inscripcion,
+                nota=calificacion.nota,
+                fecha=calificacion.fecha
             )
 
         return self.__calificaciones.registrar(calificacion)
