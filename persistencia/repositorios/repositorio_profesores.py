@@ -1,5 +1,8 @@
 from personas.profesores import Profesor
-from persistencia.conexion import ConexionMySQL
+from persistencia.conexion import (
+    ConexionMySQL,
+    reintentar_interbloqueo
+)
 from persistencia.excepciones import ErrorIntegridad
 
 
@@ -27,6 +30,7 @@ class RepositorioProfesores:
             especialidad=fila["especialidad"]
         )
 
+    @reintentar_interbloqueo
     def registrar(self, profesor: Profesor) -> bool:
 
         if not isinstance(profesor, Profesor):
