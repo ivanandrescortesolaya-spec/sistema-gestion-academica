@@ -126,3 +126,54 @@ CREATE TABLE IF NOT EXISTS modalidad (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- Tabla: curso
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS curso (
+    id_curso INT UNSIGNED AUTO_INCREMENT,
+    codigo VARCHAR(30) COLLATE utf8mb4_0900_bin NOT NULL,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT NOT NULL,
+    duracion_horas INT UNSIGNED NOT NULL,
+    id_modalidad INT UNSIGNED NOT NULL,
+    id_profesor INT UNSIGNED DEFAULT NULL,
+
+    CONSTRAINT pk_curso
+        PRIMARY KEY (id_curso),
+
+    CONSTRAINT uq_curso_codigo
+        UNIQUE (codigo),
+
+    CONSTRAINT fk_curso_modalidad
+        FOREIGN KEY (id_modalidad)
+        REFERENCES modalidad (id_modalidad)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT fk_curso_profesor
+        FOREIGN KEY (id_profesor)
+        REFERENCES profesor (id_persona)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT chk_curso_codigo
+        CHECK (CHAR_LENGTH(TRIM(codigo)) > 0),
+
+    CONSTRAINT chk_curso_nombre
+        CHECK (CHAR_LENGTH(TRIM(nombre)) > 0),
+
+    CONSTRAINT chk_curso_descripcion
+        CHECK (CHAR_LENGTH(TRIM(descripcion)) > 0),
+
+    CONSTRAINT chk_curso_duracion
+        CHECK (duracion_horas > 0),
+
+    INDEX idx_curso_modalidad (id_modalidad),
+    INDEX idx_curso_profesor (id_profesor)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
