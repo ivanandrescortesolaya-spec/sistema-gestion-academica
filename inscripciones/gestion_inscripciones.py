@@ -29,6 +29,13 @@ class IGestionInscripciones(Protocol):
         ...
 
 
+    def cancelar(self, codigo: str) -> bool:
+        ...
+
+    def finalizar(self, codigo: str) -> bool:
+        ...
+
+
 class GestionInscripciones:
 
     def __init__(
@@ -111,6 +118,33 @@ class GestionInscripciones:
                 return inscripcion
 
         return None
+
+
+    def cancelar(self, codigo: str) -> bool:
+
+        inscripcion = self.buscar_por_codigo(codigo)
+
+        if inscripcion is None:
+            raise ValueError("La inscripción no existe")
+
+        if inscripcion.estado != "Activa":
+            raise ValueError("La inscripción no está activa")
+
+        inscripcion.cancelar()
+        return True
+
+    def finalizar(self, codigo: str) -> bool:
+
+        inscripcion = self.buscar_por_codigo(codigo)
+
+        if inscripcion is None:
+            raise ValueError("La inscripción no existe")
+
+        if inscripcion.estado != "Activa":
+            raise ValueError("La inscripción no está activa")
+
+        inscripcion.finalizar()
+        return True
 
     def mostrar(self) -> str:
 

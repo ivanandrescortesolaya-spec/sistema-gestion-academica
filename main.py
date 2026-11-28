@@ -1,5 +1,7 @@
 
 from gestion_academica import GestionAcademica
+from persistencia.fabrica import crear_sistema_mysql
+from persistencia.excepciones import ErrorPersistencia
 
 from personas.profesores import Profesor
 from personas.aprendices import Aprendiz
@@ -170,7 +172,7 @@ def menu_profesores(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
@@ -241,7 +243,7 @@ def menu_aprendices(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
@@ -321,7 +323,7 @@ def menu_cursos(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
@@ -415,7 +417,7 @@ def menu_inscripciones(sistema: GestionAcademica):
                     if inscripcion is None:
                         raise ValueError("La inscripción no existe")
 
-                    inscripcion.cancelar()
+                    sistema.cancelar_inscripcion(codigo)
 
                     print("\nInscripción cancelada correctamente.")
 
@@ -426,7 +428,7 @@ def menu_inscripciones(sistema: GestionAcademica):
                     if inscripcion is None:
                         raise ValueError("La inscripción no existe")
 
-                    inscripcion.finalizar()
+                    sistema.finalizar_inscripcion(codigo)
 
                     print("\nInscripción finalizada correctamente.")
 
@@ -436,7 +438,7 @@ def menu_inscripciones(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
@@ -566,7 +568,7 @@ def menu_calificaciones(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
@@ -635,21 +637,22 @@ def menu_reportes(sistema: GestionAcademica):
                 case _:
                     print("\nOpción inválida.")
 
-        except ValueError as error:
+        except (ValueError, ErrorPersistencia) as error:
             print(f"\nError: {error}")
 
 
 # Ejecucion principal
 
 
-def main():
-    sistema = GestionAcademica(
-        profesores=Gestion_profesores(),
-        aprendices=Gestion_aprendices(),
-        cursos=GestionCursos(),
-        inscripciones=GestionInscripciones(),
-        calificaciones=GestionCalificaciones()
-    )
+def main(sistema: GestionAcademica | None = None):
+    if sistema is None:
+        sistema = GestionAcademica(
+            profesores=Gestion_profesores(),
+            aprendices=Gestion_aprendices(),
+            cursos=GestionCursos(),
+            inscripciones=GestionInscripciones(),
+            calificaciones=GestionCalificaciones()
+        )
 
 
     while True:
@@ -685,4 +688,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        sistema = crear_sistema_mysql()
+        print("Conexión con MySQL establecida correctamente.")
+        main(sistema)
+    except ErrorPersistencia as error:
+        print(f"Error de persistencia: {error}")
+        raise SystemExit(1)

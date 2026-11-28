@@ -6,12 +6,26 @@ from datetime import date
 
 class Inscripcion:
 
-    def __init__(self, codigo: str, aprendiz: Aprendiz, curso: Curso):
+    def __init__(
+        self,
+        codigo: str,
+        aprendiz: Aprendiz,
+        curso: Curso,
+        *,
+        fecha_inscripcion: date | None = None,
+        estado: str = "Activa"
+    ):
         self.codigo = codigo
         self.aprendiz = aprendiz
         self.curso = curso
-        self.__fecha_inscripcion = date.today()
-        self.__estado = "Activa"
+        if fecha_inscripcion is not None and type(fecha_inscripcion) is not date:
+            raise ValueError("Fecha de inscripción inválida")
+
+        if estado not in ("Activa", "Cancelada", "Finalizada"):
+            raise ValueError("Estado de inscripción inválido")
+
+        self.__fecha_inscripcion = fecha_inscripcion or date.today()
+        self.__estado = estado
 
     @property
     def codigo(self):
