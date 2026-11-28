@@ -103,3 +103,26 @@ CREATE TABLE IF NOT EXISTS aprendiz (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- Tabla: modalidad
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS modalidad (
+    id_modalidad INT UNSIGNED AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(255) DEFAULT NULL,
+
+    CONSTRAINT pk_modalidad
+        PRIMARY KEY (id_modalidad),
+
+    CONSTRAINT uq_modalidad_nombre
+        UNIQUE (nombre),
+
+    CONSTRAINT chk_modalidad_nombre
+        CHECK (CHAR_LENGTH(TRIM(nombre)) > 0)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
