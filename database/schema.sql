@@ -177,3 +177,50 @@ CREATE TABLE IF NOT EXISTS curso (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- Tabla: inscripcion
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS inscripcion (
+    id_inscripcion INT UNSIGNED AUTO_INCREMENT,
+    codigo VARCHAR(30) COLLATE utf8mb4_0900_bin NOT NULL,
+    id_aprendiz INT UNSIGNED NOT NULL,
+    id_curso INT UNSIGNED NOT NULL,
+    fecha_inscripcion DATE NOT NULL DEFAULT (CURRENT_DATE),
+    estado VARCHAR(15) COLLATE utf8mb4_0900_bin
+        NOT NULL DEFAULT 'Activa',
+
+    CONSTRAINT pk_inscripcion
+        PRIMARY KEY (id_inscripcion),
+
+    CONSTRAINT uq_inscripcion_codigo
+        UNIQUE (codigo),
+
+    CONSTRAINT uq_inscripcion_aprendiz_curso
+        UNIQUE (id_aprendiz, id_curso),
+
+    CONSTRAINT fk_inscripcion_aprendiz
+        FOREIGN KEY (id_aprendiz)
+        REFERENCES aprendiz (id_persona)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT fk_inscripcion_curso
+        FOREIGN KEY (id_curso)
+        REFERENCES curso (id_curso)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT chk_inscripcion_codigo
+        CHECK (CHAR_LENGTH(TRIM(codigo)) > 0),
+
+    CONSTRAINT chk_inscripcion_estado
+        CHECK (estado IN ('Activa', 'Cancelada', 'Finalizada')),
+
+    INDEX idx_inscripcion_curso (id_curso)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
