@@ -366,6 +366,8 @@ class TestServidorHTTP(BasePruebasHTTP):
 
         respuesta = self.registrar_profesor()
 
+        assert respuesta[1] is not None
+
         self.assertEqual(
             respuesta[1]["datos"],
             self.profesor

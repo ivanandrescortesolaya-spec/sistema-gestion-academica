@@ -401,6 +401,8 @@ class TestErroresHTTP(BasePruebasHTTP):
 
         self.verificar_error(respuesta, 409)
 
+        assert respuesta[1] is not None
+
         self.assertNotIn(
             "Detalle interno de integridad",
             respuesta[1]["mensaje"]
@@ -526,6 +528,8 @@ class TestErroresHTTP(BasePruebasHTTP):
 
         self.verificar_error(respuesta, 500)
 
+        assert respuesta[1] is not None
+
         self.assertNotIn(
             "Detalle interno reservado",
             respuesta[1]["mensaje"]
@@ -545,6 +549,8 @@ class TestErroresHTTP(BasePruebasHTTP):
         )
 
         self.verificar_error(respuesta, 500)
+
+        assert respuesta[1] is not None
 
         self.assertNotIn(
             "Detalle SQL reservado",
@@ -588,6 +594,8 @@ class TestErroresHTTP(BasePruebasHTTP):
         )
 
         self.verificar_error(respuesta, 503)
+
+        assert respuesta[1] is not None
 
         self.assertNotIn(
             "Detalle de conexión reservado",
