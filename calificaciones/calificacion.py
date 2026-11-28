@@ -9,12 +9,17 @@ class Calificacion:
         self,
         codigo: str,
         inscripcion: Inscripcion,
-        nota: float
+        nota: float,
+        *,
+        fecha: date | None = None
     ):
         self.codigo = codigo
         self.inscripcion = inscripcion
         self.nota = nota
-        self.__fecha = date.today()
+        if fecha is not None and type(fecha) is not date:
+            raise ValueError("Fecha de calificación inválida")
+
+        self.__fecha = fecha or date.today()
 
     @property
     def codigo(self):
