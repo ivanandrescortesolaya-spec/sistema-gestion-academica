@@ -455,3 +455,188 @@ WHERE c.id_curso = @id_curso;
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: INSCRIPCIONES
+-- ============================================
+
+START TRANSACTION;
+
+-- 1. Obtener modalidad existente
+
+SET @id_modalidad = (
+    SELECT id_modalidad
+    FROM modalidad
+    WHERE nombre = 'titulada'
+);
+
+-- 2. Registrar aprendiz de demostracion
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('9000000001', 'Aprendiz de inscripciones', 22);
+
+SET @id_aprendiz = LAST_INSERT_ID();
+
+INSERT INTO aprendiz
+    (id_persona, telefono, correo, direccion)
+VALUES
+    (@id_aprendiz, '3001234567',
+    'inscripciones@example.com', 'Calle 30');
+
+-- 3. Registrar cursos de demostracion
+
+INSERT INTO curso
+    (codigo, nombre, descripcion, duracion_horas, id_modalidad)
+VALUES
+    ('CUR901', 'Python', 'Programacion en Python',
+    120, @id_modalidad);
+
+SET @id_curso = LAST_INSERT_ID();
+
+INSERT INTO curso
+    (codigo, nombre, descripcion, duracion_horas, id_modalidad)
+VALUES
+    ('CUR902', 'MySQL', 'Bases de datos relacionales',
+    80, @id_modalidad);
+
+SET @id_curso_segundo = LAST_INSERT_ID();
+
+-- 4. Registrar inscripciones
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS901', @id_aprendiz, @id_curso);
+
+SET @id_inscripcion = LAST_INSERT_ID();
+
+INSERT INTO inscripcion
+    (codigo, id_aprendiz, id_curso)
+VALUES
+    ('INS902', @id_aprendiz, @id_curso_segundo);
+
+SET @id_inscripcion_segunda = LAST_INSERT_ID();
+
+-- 5. Listar inscripciones
+
+SELECT
+    i.codigo,
+    p.documento,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    i.fecha_inscripcion,
+    i.estado
+FROM inscripcion AS i
+INNER JOIN aprendiz AS a
+    ON i.id_aprendiz = a.id_persona
+INNER JOIN persona AS p
+    ON a.id_persona = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+ORDER BY i.codigo;
+
+-- 6. Buscar inscripcion por codigo
+
+SELECT
+    i.codigo,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    i.fecha_inscripcion,
+    i.estado
+FROM inscripcion AS i
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+WHERE i.codigo = 'INS901';
+
+-- 7. Consultar inscripciones por aprendiz
+
+SELECT
+    i.codigo AS inscripcion,
+    c.codigo AS codigo_curso,
+    c.nombre AS curso,
+    i.fecha_inscripcion,
+    i.estado
+FROM inscripcion AS i
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+WHERE i.id_aprendiz = @id_aprendiz;
+
+-- 8. Consultar inscripciones por curso
+
+SELECT
+    i.codigo AS inscripcion,
+    p.documento,
+    p.nombre AS aprendiz,
+    i.fecha_inscripcion,
+    i.estado
+FROM inscripcion AS i
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+WHERE i.id_curso = @id_curso;
+
+-- 9. Verificar si existe una inscripcion
+
+SELECT EXISTS (
+    SELECT 1
+    FROM inscripcion
+    WHERE id_aprendiz = @id_aprendiz
+      AND id_curso = @id_curso
+) AS inscripcion_existente;
+
+-- 10. Cancelar inscripcion activa
+
+UPDATE inscripcion
+SET estado = 'Cancelada'
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+SELECT ROW_COUNT() AS inscripciones_canceladas;
+
+-- 11. Finalizar inscripcion activa
+
+UPDATE inscripcion
+SET estado = 'Finalizada'
+WHERE id_inscripcion = @id_inscripcion_segunda
+  AND estado = 'Activa';
+
+SELECT ROW_COUNT() AS inscripciones_finalizadas;
+
+-- 12. Intentar finalizar una inscripcion cancelada
+
+UPDATE inscripcion
+SET estado = 'Finalizada'
+WHERE id_inscripcion = @id_inscripcion
+  AND estado = 'Activa';
+
+SELECT ROW_COUNT() AS transiciones_realizadas;
+
+-- 13. Contar inscripciones por estado
+
+SELECT
+    estado,
+    COUNT(*) AS total_inscripciones
+FROM inscripcion
+GROUP BY estado
+ORDER BY estado;
+
+-- 14. Verificar estados actualizados
+
+SELECT
+    i.codigo,
+    p.nombre AS aprendiz,
+    c.nombre AS curso,
+    i.estado
+FROM inscripcion AS i
+INNER JOIN persona AS p
+    ON i.id_aprendiz = p.id_persona
+INNER JOIN curso AS c
+    ON i.id_curso = c.id_curso
+WHERE i.id_aprendiz = @id_aprendiz
+ORDER BY i.codigo;
+
+-- Revertir los datos de demostracion
+
+ROLLBACK;
