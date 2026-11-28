@@ -1,4 +1,4 @@
-from integracion import BaseIntegracion
+from tests.integracion import BaseIntegracion
 
 
 class TestRepositorioAprendices(BaseIntegracion):
