@@ -6,8 +6,18 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TEST_DIR="$ROOT_DIR/database/tests"
 
+# Cargar variables de entorno privadas
+set -a
+source "$ROOT_DIR/infra/.env"
+set +a
+
 CONTAINER="academic-mysql"
 DATABASE="sistema_gestion_academica_test"
+
+: "${DB_TEST_USER:?Usuario de pruebas requerido}"
+: "${DB_TEST_PASSWORD:?Contrasena de pruebas requerida}"
+
+export MYSQL_PWD="$DB_TEST_PASSWORD"
 
 FILES=(
     test_persona.sql
@@ -23,18 +33,16 @@ FILES=(
 
 EXPECTED=(8 10 8 6 10 10 11 7 7)
 
-TOTAL_FILES=0
 PASSED_FILES=0
 FAILED_FILES=0
 TOTAL_TESTS=0
 
 echo "============================================"
-echo " SISTEMA DE GESTION ACADEMICA"
 echo " PRUEBAS AUTOMATIZADAS DE BASE DE DATOS"
 echo "============================================"
 
 if [[ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" != "true" ]]; then
-    echo "ERROR: El contenedor MySQL no esta ejecutandose."
+    echo "ERROR: MySQL no esta ejecutandose."
     exit 1
 fi
 
@@ -42,12 +50,9 @@ for index in "${!FILES[@]}"; do
 
     file="${FILES[$index]}"
     expected="${EXPECTED[$index]}"
-    TOTAL_FILES=$((TOTAL_FILES + 1))
 
     echo ""
-    echo "--------------------------------------------"
     echo "Ejecutando: $file"
-    echo "--------------------------------------------"
 
     if [[ ! -f "$TEST_DIR/$file" ]]; then
         echo "ERROR: Archivo no encontrado."
@@ -55,10 +60,10 @@ for index in "${!FILES[@]}"; do
         continue
     fi
 
-    if output=$(docker exec -i "$CONTAINER" \
-        sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql \
-        --batch --skip-column-names -u root "$1"' \
-        sh "$DATABASE" < "$TEST_DIR/$file" 2>&1); then
+    if output=$(docker exec -i -e MYSQL_PWD "$CONTAINER" \
+        mysql --batch --skip-column-names \
+        -u "$DB_TEST_USER" "$DATABASE" \
+        < "$TEST_DIR/$file" 2>&1); then
 
         printf '%s\n' "$output"
 
@@ -71,7 +76,7 @@ for index in "${!FILES[@]}"; do
             echo "OK: $file ($count/$expected)"
         else
             FAILED_FILES=$((FAILED_FILES + 1))
-            echo "ERROR: Cantidad de pruebas inesperada."
+            echo "ERROR: Cantidad inesperada de pruebas."
         fi
 
     else
@@ -88,7 +93,7 @@ echo ""
 echo "============================================"
 echo " RESUMEN FINAL"
 echo "============================================"
-echo "Archivos ejecutados: $TOTAL_FILES"
+echo "Archivos ejecutados: ${#FILES[@]}"
 echo "Archivos superados:  $PASSED_FILES"
 echo "Archivos fallidos:   $FAILED_FILES"
 echo "Pruebas superadas:   $TOTAL_TESTS"
@@ -100,5 +105,3 @@ if [[ "$FAILED_FILES" -gt 0 ]]; then
 fi
 
 echo "RESULTADO: TODAS LAS PRUEBAS SUPERADAS"
-
-exit 0
