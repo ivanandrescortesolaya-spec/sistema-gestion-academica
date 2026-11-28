@@ -303,3 +303,155 @@ WHERE id_modalidad = @id_modalidad_demo;
 -- Revertir los datos de demostracion
 
 ROLLBACK;
+
+
+-- ============================================
+-- MODULO: CURSOS
+-- ============================================
+
+START TRANSACTION;
+
+-- 1. Obtener modalidad existente
+
+SET @id_modalidad = (
+    SELECT id_modalidad
+    FROM modalidad
+    WHERE nombre = 'titulada'
+);
+
+-- 2. Registrar profesor de demostracion
+
+INSERT INTO persona (documento, nombre, edad)
+VALUES ('8000000001', 'Profesor de cursos', 35);
+
+SET @id_profesor = LAST_INSERT_ID();
+
+INSERT INTO profesor
+    (id_persona, codigo, profesion, especialidad)
+VALUES
+    (@id_profesor, 801, 'Ingeniero de sistemas', 'Python');
+
+-- 3. Registrar curso sin profesor asignado
+
+INSERT INTO curso
+    (codigo, nombre, descripcion, duracion_horas, id_modalidad)
+VALUES
+    ('CUR801', 'Programacion en Python',
+    'Fundamentos de programacion orientada a objetos',
+    120, @id_modalidad);
+
+SET @id_curso = LAST_INSERT_ID();
+
+-- 4. Listar cursos
+
+SELECT
+    c.id_curso,
+    c.codigo,
+    c.nombre,
+    c.descripcion,
+    c.duracion_horas,
+    m.nombre AS modalidad,
+    COALESCE(p.nombre, 'Sin asignar') AS profesor
+FROM curso AS c
+INNER JOIN modalidad AS m
+    ON c.id_modalidad = m.id_modalidad
+LEFT JOIN profesor AS pr
+    ON c.id_profesor = pr.id_persona
+LEFT JOIN persona AS p
+    ON pr.id_persona = p.id_persona
+ORDER BY c.nombre;
+
+-- 5. Buscar curso por codigo
+
+SELECT
+    c.codigo,
+    c.nombre,
+    c.descripcion,
+    c.duracion_horas,
+    m.nombre AS modalidad
+FROM curso AS c
+INNER JOIN modalidad AS m
+    ON c.id_modalidad = m.id_modalidad
+WHERE c.codigo = 'CUR801';
+
+-- 6. Asignar profesor responsable
+
+UPDATE curso
+SET id_profesor = @id_profesor
+WHERE id_curso = @id_curso;
+
+-- 7. Actualizar informacion del curso
+
+UPDATE curso
+SET nombre = 'Python avanzado',
+    descripcion = 'Programacion orientada a objetos y SOLID',
+    duracion_horas = 160
+WHERE id_curso = @id_curso;
+
+-- 8. Consultar cursos por profesor
+
+SELECT
+    p.nombre AS profesor,
+    c.codigo,
+    c.nombre AS curso,
+    c.duracion_horas
+FROM curso AS c
+INNER JOIN profesor AS pr
+    ON c.id_profesor = pr.id_persona
+INNER JOIN persona AS p
+    ON pr.id_persona = p.id_persona
+WHERE pr.id_persona = @id_profesor;
+
+-- 9. Consultar aprendices inscritos en el curso
+
+SELECT
+    c.codigo AS codigo_curso,
+    c.nombre AS curso,
+    p.documento,
+    p.nombre AS aprendiz,
+    i.fecha_inscripcion,
+    i.estado
+FROM curso AS c
+INNER JOIN inscripcion AS i
+    ON c.id_curso = i.id_curso
+INNER JOIN aprendiz AS a
+    ON i.id_aprendiz = a.id_persona
+INNER JOIN persona AS p
+    ON a.id_persona = p.id_persona
+WHERE c.id_curso = @id_curso;
+
+-- 10. Contar aprendices por curso
+
+SELECT
+    c.codigo,
+    c.nombre AS curso,
+    COUNT(i.id_inscripcion) AS total_aprendices
+FROM curso AS c
+LEFT JOIN inscripcion AS i
+    ON c.id_curso = i.id_curso
+GROUP BY
+    c.id_curso,
+    c.codigo,
+    c.nombre;
+
+-- 11. Verificar informacion actualizada
+
+SELECT
+    c.codigo,
+    c.nombre,
+    c.descripcion,
+    c.duracion_horas,
+    m.nombre AS modalidad,
+    COALESCE(p.nombre, 'Sin asignar') AS profesor
+FROM curso AS c
+INNER JOIN modalidad AS m
+    ON c.id_modalidad = m.id_modalidad
+LEFT JOIN profesor AS pr
+    ON c.id_profesor = pr.id_persona
+LEFT JOIN persona AS p
+    ON pr.id_persona = p.id_persona
+WHERE c.id_curso = @id_curso;
+
+-- Revertir los datos de demostracion
+
+ROLLBACK;
