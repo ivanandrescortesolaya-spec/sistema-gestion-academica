@@ -224,3 +224,39 @@ CREATE TABLE IF NOT EXISTS inscripcion (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- Tabla: calificacion
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS calificacion (
+    id_calificacion INT UNSIGNED AUTO_INCREMENT,
+    codigo VARCHAR(30) COLLATE utf8mb4_0900_bin NOT NULL,
+    id_inscripcion INT UNSIGNED NOT NULL,
+    nota DECIMAL(3,2) NOT NULL,
+    fecha DATE NOT NULL DEFAULT (CURRENT_DATE),
+
+    CONSTRAINT pk_calificacion
+        PRIMARY KEY (id_calificacion),
+
+    CONSTRAINT uq_calificacion_codigo
+        UNIQUE (codigo),
+
+    CONSTRAINT fk_calificacion_inscripcion
+        FOREIGN KEY (id_inscripcion)
+        REFERENCES inscripcion (id_inscripcion)
+        ON DELETE RESTRICT
+        ON UPDATE RESTRICT,
+
+    CONSTRAINT chk_calificacion_codigo
+        CHECK (CHAR_LENGTH(TRIM(codigo)) > 0),
+
+    CONSTRAINT chk_calificacion_nota
+        CHECK (nota BETWEEN 0.00 AND 5.00),
+
+    INDEX idx_calificacion_inscripcion (id_inscripcion)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci;
